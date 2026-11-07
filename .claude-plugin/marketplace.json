@@ -1,0 +1,11 @@
+{
+  "name": "priberry",
+  "owner": { "name": "Priberry", "email": "hello@priberry.com" },
+  "plugins": [
+    {
+      "name": "tare",
+      "source": "./",
+      "description": "Where your agent's tokens go, the fixes, and the receipt. Local, zero tokens."
+    }
+  ]
+}

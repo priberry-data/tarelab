@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tare: same work, fewer tokens, with the receipt</title>
+<meta name="description" content="Tare reads the logs your coding agent already keeps, shows where every dollar of tokens went, cuts the waste without breaking the prompt cache, and proves each saving on your own work. Local, free, zero tokens.">
+<link rel="canonical" href="https://tare.priberry.com/">
+<meta name="theme-color" content="#0B0905">
+<link rel="icon" href="/brand/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/fonts/plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="alternate" type="text/plain" href="/llms.txt" title="Tare for AI agents">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="tare">
+<meta property="og:title" content="tare: same work, fewer tokens, with the receipt">
+<meta property="og:description" content="See where your coding agent's tokens go, cut the waste without breaking the cache, and get a receipt for every saving. npx tarelab">
+<meta property="og:url" content="https://tare.priberry.com/">
+<meta property="og:image" content="https://tare.priberry.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Tare","alternateName":"tarelab","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"See where your AI coding agent's tokens go, cut the waste without breaking the prompt cache, and get a receipt for every saving.","url":"https://tare.priberry.com/","publisher":{"@type":"Organization","name":"Priberry","url":"https://priberry.com"}}
+</script>
+<script src="/mode.js"></script>
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+
+<header class="bar" role="banner">
+  <a class="home" href="/" aria-label="tare home"><span class="logo" aria-hidden="true">t<i></i></span>tare<span class="dim ver"> 0.1.0</span></a>
+  <nav aria-label="Sections">
+    <a href="#how"><kbd>1</kbd>how</a>
+    <a href="#wrapped"><kbd>2</kbd>wrapped</a>
+    <a href="#fix"><kbd>3</kbd>fix</a>
+    <a href="#receipt"><kbd>4</kbd>receipt</a>
+    <a href="#pricing"><kbd>5</kbd>pricing</a>
+    <a href="#faq"><kbd>6</kbd>faq</a>
+    <a href="#start"><kbd>7</kbd>start</a>
+  </nav>
+  <div class="right">
+    <div class="modes" role="group" aria-label="How to show this page" hidden>
+      <button type="button" data-set="dev" title="For engineers: the terminal view">dev</button><button type="button" data-set="public" title="For everyone: plain words, printable">public</button>
+    </div>
+    <span class="clock dim" aria-hidden="true">tty1 <span id="clock">--:--:--</span></span>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero" aria-labelledby="hero-title">
+  <pre class="boot dim dev" aria-hidden="true">tare scale v0.1.0 · (c) 2026 priberry
+logs ................... found<span class="x">  ~/.claude/projects</span>
+prices ................. ok<span class="x">  cache reads, cache writes and output, each at its own rate</span>
+network ................ off<span class="x">  nothing leaves this machine</span>
+tokens spent ........... 0<span class="x">  tare never calls a model</span>
+scale .................. zeroed</pre>
+
+  <h1 id="hero-title"><img class="banner" src="/brand/banner.svg" alt="tare" width="338" height="128"></h1>
+
+  <p class="tagline dev"><span class="p">&gt;</span> same work, fewer tokens, with the receipt<span class="cursor" aria-hidden="true"></span></p>
+  <p class="tagline pub">Find out what your AI coding assistant really costs, and cut the waste.</p>
+
+  <p class="lede dev">Your coding agent keeps a log of every call it makes. Tare reads those logs, prices every token, and shows you <b>where the money went</b>: the context you carry on every call, the test logs that sit there for an hour, the cache that went cold while you made coffee. Then it cuts the waste <b>without breaking the prompt cache</b>, and proves each saving on your own work.</p>
+  <p class="lede pub">AI coding assistants such as Claude Code bill by the token, and most teams can't see where those tokens go. Tare reads the records the assistant already keeps on each computer, shows what the work cost and what was wasted, switches on the fixes that are safe, and later shows <b>whether they really saved money</b> without slowing the work down.</p>
+
+  <pre class="out install"><span class="p">$</span> <span data-copy>npx tarelab</span></pre>
+  <div class="ctas">
+    <a class="key primary" href="#start">[ get started ]</a>
+    <a class="key" href="https://github.com/priberry-data/tarelab">[ source on github ]</a>
+  </div>
+
+  <figure class="window run dev" aria-labelledby="run-cap">
+    <div class="title"><span>═ tare wrapped ═</span><button class="replay" type="button" hidden>↻ replay</button></div>
+<pre class="out" id="run"><span class="p">$</span> npx tarelab
+<span class="dim">reading 402 session logs… 253 sessions in the last 30 days</span>
+
+  <b>$6,713</b> <span class="dim">API-equivalent spend</span>
+  <span class="ok">$620</span> <span class="dim">of it avoidable</span>
+
+  reading cached context      <span class="p">██████████████████████</span> $3,805
+  writing to the cache        <span class="p">████████████</span> $2,071
+  output, thinking included   <span class="p">█████</span> $837
+
+  <span class="p">›</span> ~82k tokens load before you type a word.
+  <span class="p">›</span> sed output cost $262 just by sitting in context.
+  <span class="p">›</span> Coffee-break tax: $722 re-caching after 636 pauses.
+  <span class="p">›</span> Sub-agents spent $2,734 (41%).
+
+<span class="p">$</span> tare fix
+<span class="ok">✓ output trim · ✓ cache countdown in the status line</span></pre>
+    <figcaption id="run-cap" class="dim">A real month of Priberry's own Claude Code use, read by Tare on one laptop. Prices are API list prices; on a subscription the bill is flat, and this is what the same work would cost on the API.</figcaption>
+  </figure>
+</section>
+
+<section id="how" class="window" aria-labelledby="how-t">
+  <h2 id="how-t" class="title"><span>═[1]═ how it works</span></h2>
+  <p class="big dev">See it. Cut it. Prove it. Local, free, and it never spends a token of its own.</p>
+  <p class="big pub">See the cost. Cut the waste. Prove the saving. It all happens on your own computer.</p>
+  <dl class="man">
+    <dt><span class="dev"><span class="p">$</span> <span data-copy>npx tarelab</span></span><span class="pub">1. See</span></dt>
+    <dd><span class="dev">Reads Claude Code's session logs, prices every call (fresh input, cache writes at 5-minute and 1-hour rates, cache reads, output, thinking) and attributes the spend: startup context, each tool's output, sub-agents, cache rebuilds. Your Wrapped in seconds; cached, so the second run takes under one.</span><span class="pub">Tare reads the assistant's own records and turns them into a bill you can understand: what was spent, on which projects, and what was wasted.</span></dd>
+    <dt><span class="dev"><span class="p">$</span> <span data-copy>tare fix</span></span><span class="pub">2. Cut</span></dt>
+    <dd><span class="dev">Installs fixes that cut waste where it enters the context, never by rewriting history, so the prompt cache stays intact. Backed up first; <code>tare fix --undo</code> restores your settings exactly.</span><span class="pub">Tare switches on a few safe changes that stop waste before it happens. Every change can be undone with one command.</span></dd>
+    <dt><span class="dev"><span class="p">$</span> <span data-copy>tare receipt</span></span><span class="pub">3. Prove</span></dt>
+    <dd><span class="dev">Compares cost per commit before and after, with a 90% range, and checks that just as many sessions still finish. If the data isn't there yet, it says so instead of printing a number.</span><span class="pub">A few weeks later, Tare compares the cost of finished work before and after, and checks the work didn't suffer. If there isn't enough data yet, it says so.</span></dd>
+  </dl>
+</section>
+
+<section id="wrapped" class="window" aria-labelledby="wrapped-t">
+  <h2 id="wrapped-t" class="title"><span>═[2]═ <span class="dev">tare wrapped</span><span class="pub">where the money goes</span></span></h2>
+  <p class="big">Most of the bill isn't the agent thinking. It's the agent re-reading everything it has already seen, on every call.</p>
+  <table class="list">
+    <thead><tr><th scope="col">what Tare measures</th><th scope="col">why it costs</th></tr></thead>
+    <tbody>
+      <tr><td>Startup context</td><td>The system prompt, tool list, skills and memory ride along on every single call. 82k tokens in our own setup.</td></tr>
+      <tr><td>Carry cost of tool output</td><td>A test log is written to the cache once, then read back on every later call until the conversation is compacted.</td></tr>
+      <tr><td>Coffee-break tax</td><td>After 5 minutes idle the cache expires, and the whole conversation is written again at 1.25× the input price.</td></tr>
+      <tr><td>Cache breaks</td><td>Switching models or changing tools mid-session rewrites the context from scratch.</td></tr>
+      <tr><td>Sub-agents and models</td><td>Which agents and which models did the spending, by project, by day and by hour.</td></tr>
+      <tr><td>Repeats</td><td>Tool calls that returned byte-for-byte what the agent already had.</td></tr>
+    </tbody>
+  </table>
+  <div class="cards">
+    <figure><img src="/sample-card.svg" alt="Sample Tare Wrapped card: $6,714 API-equivalent spend over 30 days, $620 avoidable, with the top fix." width="1200" height="630" loading="lazy"><figcaption class="dim">tare card · a shareable card, made on your machine; you decide whether to post it</figcaption></figure>
+  </div>
+</section>
+
+<section id="fix" class="window" aria-labelledby="fix-t">
+  <h2 id="fix-t" class="title"><span>═[3]═ <span class="dev">tare fix</span><span class="pub">the fixes</span></span></h2>
+  <p class="big">Cut waste where it enters. Never rewrite what's already there. A compressor that rewrites history breaks the cache, and the "saving" costs money.</p>
+  <ul class="plus dev">
+    <li><b>trim</b> long command output is cut to the failures, the first lines and the last lines before the agent sees it. The full text is saved to a file the agent can open if it needs more. A 22k-token test run becomes about 900 tokens, and the failing test is still there.</li>
+    <li><b>countdown</b> the status line shows how long until the cache goes cold, and what your next message will cost warm versus cold. <code>tare · $41.27 · 244k ctx · cache warm 3:41 · next msg ~$0.05</code></li>
+    <li><b>habits</b> what a switch can't fix, priced from your own logs: model switches, unused MCP servers and skills, effort that's higher than the task needs.</li>
+    <li><b>undo</b> every change is backed up and touches only Tare's own entries. <code>tare fix --undo</code> puts the file back byte for byte.</li>
+  </ul>
+  <ul class="plus pub">
+    <li><b>Shorter logs:</b> when the assistant runs a test, it sees the failures and a summary, not thousands of lines that passed.</li>
+    <li><b>A countdown:</b> a small timer shows when a pause is about to make the next message expensive.</li>
+    <li><b>Advice with a price on it:</b> habits that cost money, each with what it cost you last month.</li>
+    <li><b>One-step undo</b> for every change.</li>
+  </ul>
+  <p class="big indep">We don't sell tokens or models. We have no reason to make you spend more.</p>
+</section>
+
+<section id="receipt" class="window" aria-labelledby="receipt-t">
+  <h2 id="receipt-t" class="title"><span>═[4]═ <span class="dev">tare receipt</span><span class="pub">the receipt</span></span></h2>
+  <p class="big">Token savers have a credibility problem: dashboards claim millions of tokens "saved" while the bill goes up. Tare's number is the one you can check.</p>
+<pre class="out receipt">  TARE RECEIPT
+  ────────────────────────────────────────
+  Fixes installed     2026-11-08
+  Before              41 finished sessions · $3.88 per commit
+  After               38 finished sessions · $3.02 per commit
+  ────────────────────────────────────────
+  Cost per commit     -22%  (90% range -31% to -12%)
+  Sessions finishing  74% → 76%  · work held up
+  Verdict: a real saving.
+  ────────────────────────────────────────
+  <span class="dim">Measured on your own logs, on this machine.</span></pre>
+  <p class="note dim">Illustration of the format. Your receipt uses your sessions; with fewer than 8 finished sessions on either side, it prints "not enough data yet" and no number.</p>
+  <ul class="plus method">
+    <li><b>Cost per finished task,</b> not raw tokens: a cheaper session that needs a redo isn't cheaper.</li>
+    <li><b>A range, not a point:</b> a bootstrap 90% interval, and "too close to call" when it straddles zero.</li>
+    <li><b>The work must hold:</b> if fewer sessions reach a commit, the receipt says so and points to the undo.</li>
+    <li><b>Local:</b> the receipt is computed on your machine from your own logs.</li>
+  </ul>
+</section>
+
+<section id="pricing" class="window" aria-labelledby="pricing-t">
+  <h2 id="pricing-t" class="title"><span>═[5]═ pricing</span></h2>
+  <p class="big">Free and open source under Apache 2.0. Teams pay when it pays.</p>
+  <div class="plans">
+    <div class="plan">
+      <h3>open source</h3><p class="price">free</p>
+      <ul><li>Wrapped and the share card</li><li>every fix, with undo</li><li>the receipt on your own work</li><li>skill, plugin and MCP server</li></ul>
+    </div>
+    <div class="plan hot">
+      <h3>team</h3><p class="price">$30 per developer, or 10% of verified savings, whichever is lower</p>
+      <ul><li>spend by engineer, repo and agent</li><li>cost per merged PR</li><li>a CI gate on cost per task</li><li>fixes rolled out from one place</li></ul>
+    </div>
+    <div class="plan">
+      <h3>enterprise</h3><p class="price">talk to us</p>
+      <ul><li>self-hosted</li><li>SSO and finance exports</li><li>procurement-grade reports</li></ul>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="window" aria-labelledby="faq-t">
+  <h2 id="faq-t" class="title"><span>═[6]═ faq</span></h2>
+  <div class="faq">
+    <details><summary>Does Tare send my logs anywhere?</summary><p>No. It reads the files on your machine and writes its results next to them, in <code>~/.tare</code>. It makes no network requests and never calls a model, so it costs no tokens.</p></details>
+    <details><summary>I'm on a subscription. Does this matter to me?</summary><p>The dollar figures are what the same work would cost at API prices, so you can compare setups and see waste. On a subscription, waste shows up as hitting your usage limits sooner; the fixes help with that too.</p></details>
+    <details><summary>Will the fixes make my agent worse?</summary><p>The output trim keeps every line that looks like a failure, plus the start and end, and saves the full output where the agent can read it. The receipt checks that sessions still finish, and <code>tare fix --undo</code> removes everything.</p></details>
+    <details><summary>Why not just compress the context?</summary><p>Rewriting what's already in context breaks the prompt cache. A cache miss costs 12.5 to 25 times a hit, so a tool can cut tokens and still raise the bill. Tare only trims new content, as it enters.</p></details>
+    <details><summary>Which agents does it support?</summary><p>Claude Code today. Codex CLI and Gemini CLI logs are next. The skill works in Claude Code and Codex now, and the MCP server works with any agent that speaks MCP.</p></details>
+    <details><summary>Are you affiliated with Anthropic?</summary><p>No. Tare is independent and built by Priberry, the team behind <a href="https://crumple.priberry.com">Crumple</a>.</p></details>
+  </div>
+</section>
+
+<section id="start" class="window" aria-labelledby="start-t">
+  <h2 id="start-t" class="title"><span>═[7]═ <span class="dev">get started</span><span class="pub">try it</span></span></h2>
+  <p class="big">Free and open source. Runs on your own machine, and nothing leaves it.</p>
+  <dl class="man">
+    <dt><span class="p">$</span> <span data-copy>npx tarelab</span></dt>
+    <dd>Your Wrapped for the last 30 days. Needs Node 20 or newer, nothing else.</dd>
+    <dt><span class="p">$</span> <span data-copy>npx tarelab fix</span></dt>
+    <dd>Install the output trim and the cache countdown. Add <code>--dry-run</code> to see the change first.</dd>
+    <dt><span class="p">$</span> <span data-copy>npx tarelab card</span></dt>
+    <dd>Make the shareable card, with a PNG download.</dd>
+  </dl>
+  <h3 class="sub">Inside your agent</h3>
+  <dl class="man">
+    <dt>Claude Code plugin</dt>
+    <dd><code data-copy>/plugin marketplace add priberry-data/tarelab</code>, then <code>/plugin install tare@priberry</code>. Adds the skill and the MCP server; ask "what did my agent cost this month?"</dd>
+    <dt>Skill (Claude Code or Codex)</dt>
+    <dd>Copy <code>skills/tare</code> from the repo into <code>~/.claude/skills/</code> or <code>~/.codex/skills/</code>.</dd>
+    <dt>MCP server (any agent)</dt>
+    <dd><code data-copy>npx -y tarelab mcp</code> over stdio. Tools: <code>tare_wrapped</code>, <code>tare_receipt</code>, <code>tare_cache</code>.</dd>
+  </dl>
+  <p class="dim">Version 0.1. Tell us what breaks: <a href="mailto:hello@priberry.com?subject=tare">hello@priberry.com</a> · <a href="https://github.com/priberry-data/tarelab/issues">github issues</a></p>
+</section>
+
+</main>
+
+<footer class="bar foot">
+  <span>© 2026 <a href="https://priberry.com">priberry</a> · tare is built by priberry · also: <a href="https://crumple.priberry.com">crumple</a></span>
+  <span><a href="mailto:hello@priberry.com">hello@priberry.com</a> · <a href="/llms.txt">llms.txt</a> · <a href="https://priberry.com/privacy/">privacy</a></span>
+  <span class="dim">no cookies · no trackers · no third-party requests</span>
+  <span class="dim legal">Claude Code and Codex are trademarks of their owners. Tare is independent and not affiliated with Anthropic or OpenAI.</span>
+</footer>
+
+<script src="/site.js" defer></script>
+</body>
+</html>

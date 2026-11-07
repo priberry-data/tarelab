@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "tare": { "command": "npx", "args": ["-y", "tarelab", "mcp"] }
+  }
+}

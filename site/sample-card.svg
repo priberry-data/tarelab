@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="IBM Plex Mono, SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace">
+<defs><pattern id="scan" width="4" height="3" patternUnits="userSpaceOnUse"><rect width="4" height="1" y="2" fill="#000" opacity=".22"/></pattern>
+<radialGradient id="vig" cx="50%" cy="50%" r="75%"><stop offset="62%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".55"/></radialGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<rect width="1200" height="630" fill="#0B0905"/>
+<rect x="24" y="24" width="1152" height="582" fill="none" stroke="#3E301A" stroke-width="2"/>
+<rect x="24" y="24" width="1152" height="52" fill="#120E07"/><line x1="24" y1="76" x2="1176" y2="76" stroke="#3E301A" stroke-width="2"/>
+<rect x="48" y="38" width="24" height="24" fill="#FFC24B"/><text x="54" y="57" font-size="18" fill="#0B0905" font-weight="600" >t</text>
+<text x="84" y="57" font-size="20" fill="#F2DFB8" font-weight="600" >tare</text><text x="140" y="57" font-size="18" fill="#9A8460" font-weight="400" >· YOUR AGENT, WRAPPED</text>
+<text x="1152" y="57" font-size="18" fill="#9A8460" font-weight="400" text-anchor="end">LAST 30 DAYS</text>
+<text x="56" y="168" font-size="84" fill="#FFC24B" font-weight="600" opacity=".35" stroke="#FFC24B" stroke-width="6" stroke-linejoin="round">$6,714</text><text x="56" y="168" font-size="84" fill="#FFC24B" font-weight="600" >$6,714</text>
+<text x="60" y="204" font-size="20" fill="#9A8460" font-weight="400" >API-equivalent spend on my coding agent</text>
+<text x="60" y="246" font-size="24" fill="#7CE38B" font-weight="600" >$620 of it was avoidable (9%)</text>
+<text x="760" y="128" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">sessions   </text><text x="1152" y="128" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">253</text>
+<text x="760" y="168" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">API calls  </text><text x="1152" y="168" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">79,840</text>
+<text x="760" y="208" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">per commit </text><text x="1152" y="208" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">$3.88</text>
+<text x="760" y="248" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">top model  </text><text x="1152" y="248" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">Opus 5.5 92%</text>
+<line x1="56" y1="282" x2="1144" y2="282" stroke="#3E301A" stroke-width="2" stroke-dasharray="6 6"/>
+<text x="60" y="330" font-size="24" fill="#FFC24B" font-weight="600" >›</text><text x="88" y="330" font-size="23" fill="#F2DFB8" font-weight="400" >Your agent opened DESK.md 36 times.</text>
+<text x="60" y="370" font-size="24" fill="#FFC24B" font-weight="600" >›</text><text x="88" y="370" font-size="23" fill="#F2DFB8" font-weight="400" >sed output cost $262 just by sitting in context.</text>
+<text x="60" y="410" font-size="24" fill="#FFC24B" font-weight="600" >›</text><text x="88" y="410" font-size="23" fill="#F2DFB8" font-weight="400" >Coffee-break tax: $722 re-caching after 636 pauses.</text>
+<text x="60" y="450" font-size="24" fill="#FFC24B" font-weight="600" >›</text><text x="88" y="450" font-size="23" fill="#F2DFB8" font-weight="400" >~82k tokens load before you type a word.</text>
+<rect x="56" y="500" width="1088" height="64" fill="#17110A" stroke="#3E301A"/>
+<text x="76" y="540" font-size="18" fill="#9A8460" font-weight="600" >TOP FIX</text><text x="180" y="540" font-size="22" fill="#F2DFB8" font-weight="600" >Stop paying the coffee-break tax</text><text x="1124" y="540" font-size="24" fill="#7CE38B" font-weight="600" text-anchor="end">~$361</text>
+<text x="56" y="596" font-size="18" fill="#FFC24B" font-weight="600" >npx tarelab</text><text x="1144" y="596" font-size="16" fill="#9A8460" font-weight="400" text-anchor="end">tare.priberry.com · measured locally, nothing uploaded</text>
+<rect width="1200" height="630" fill="url(#scan)"/><rect width="1200" height="630" fill="url(#vig)"/></svg>
