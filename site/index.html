@@ -76,14 +76,14 @@ scale .................. zeroed</pre>
   <figure class="window run dev" aria-labelledby="run-cap">
     <div class="title"><span>═ tare wrapped ═</span><button class="replay" type="button" hidden>↻ replay</button></div>
 <pre class="out" id="run"><span class="p">$</span> npx tarelab
-<span class="dim">reading 402 session logs… 253 sessions in the last 30 days</span>
+<span class="dim">reading session logs… 254 sessions in the last 30 days</span>
 
-  <b>$6,713</b> <span class="dim">API-equivalent spend</span>
-  <span class="ok">$620</span> <span class="dim">of it avoidable</span>
+  <b>$6,720</b> <span class="dim">API-equivalent spend</span>
+  <span class="ok">$623</span> <span class="dim">of it avoidable</span>
 
-  reading cached context      <span class="p">██████████████████████</span> $3,805
-  writing to the cache        <span class="p">████████████</span> $2,071
-  output, thinking included   <span class="p">█████</span> $837
+  reading cached context      <span class="p">██████████████████████</span> $3,809
+  writing to the cache        <span class="p">████████████</span> $2,072
+  output, thinking included   <span class="p">█████</span> $838
 
   <span class="p">›</span> ~82k tokens load before you type a word.
   <span class="p">›</span> sed output cost $262 just by sitting in context.
@@ -125,7 +125,7 @@ scale .................. zeroed</pre>
     </tbody>
   </table>
   <div class="cards">
-    <figure><img src="/sample-card.svg" alt="Sample Tare Wrapped card: $6,714 API-equivalent spend over 30 days, $620 avoidable, with the top fix." width="1200" height="630" loading="lazy"><figcaption class="dim">tare card · a shareable card, made on your machine; you decide whether to post it</figcaption></figure>
+    <figure><img src="/sample-card.svg" alt="Sample Tare Wrapped card: $6,720 API-equivalent spend over 30 days, $623 avoidable, with the top fix." width="1200" height="630" loading="lazy"><figcaption class="dim">tare card · a shareable card, made on your machine; you decide whether to post it</figcaption></figure>
   </div>
 </section>
 
@@ -133,7 +133,7 @@ scale .................. zeroed</pre>
   <h2 id="fix-t" class="title"><span>═[3]═ <span class="dev">tare fix</span><span class="pub">the fixes</span></span></h2>
   <p class="big">Cut waste where it enters. Never rewrite what's already there. A compressor that rewrites history breaks the cache, and the "saving" costs money.</p>
   <ul class="plus dev">
-    <li><b>trim</b> long command output is cut to the failures, the first lines and the last lines before the agent sees it. The full text is saved to a file the agent can open if it needs more. A 22k-token test run becomes about 900 tokens, and the failing test is still there.</li>
+    <li><b>trim</b> long command output is cut to the failures, the first lines and the last lines before the agent sees it. The full text is saved to a file the agent can open if it needs more. Output over about 2,500 tokens comes down to about 1,200, and the failing lines are still there.</li>
     <li><b>countdown</b> the status line shows how long until the cache goes cold, and what your next message will cost warm versus cold. <code>tare · $41.27 · 244k ctx · cache warm 3:41 · next msg ~$0.05</code></li>
     <li><b>habits</b> what a switch can't fix, priced from your own logs: model switches, unused MCP servers and skills, effort that's higher than the task needs.</li>
     <li><b>undo</b> every change is backed up and touches only Tare's own entries. <code>tare fix --undo</code> puts the file back byte for byte.</li>

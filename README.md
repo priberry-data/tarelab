@@ -11,15 +11,15 @@ npx tarelab
 ```
 
 ```
-  YOUR AGENT, WRAPPED  · last 30 days · 253 sessions · 79,828 API calls
+  YOUR AGENT, WRAPPED  · last 30 days · 254 sessions · 79,905 API calls
 
-  $6,713 API-equivalent spend
-  $620 of it was avoidable (9%)
+  $6,720 API-equivalent spend
+  $623 of it was avoidable (9%)
 
   Where it went
-  Reading cached context     ██████████████████████ $3,805
-  Writing to the cache       ████████████ $2,071
-  Output (thinking incl.)    █████ $837
+  Reading cached context     ██████████████████████ $3,809
+  Writing to the cache       ████████████ $2,072
+  Output (thinking incl.)    █████ $838
 
   The highlights
   › ~82k tokens load before you type a word.
@@ -72,7 +72,8 @@ on either side it prints "not enough data" and no number.
 
 ## In your agent
 
-- **Claude Code plugin:** `/plugin marketplace add priberry-data/tarelab`, then `/plugin install tare@priberry`.
+- **Claude Code plugin:** `/plugin marketplace add priberry-data/tarelab`, then `/plugin install tare@priberry`
+  (or in one step: `/plugin install tare --marketplace priberry-data/tarelab`).
 - **Skill (Claude Code or Codex):** copy `skills/tare` into `~/.claude/skills/` or `~/.codex/skills/`.
 - **MCP (any agent):** `{"command": "npx", "args": ["-y", "tarelab", "mcp"]}`.
 

@@ -56,7 +56,7 @@ export function render(R, { color = true } = {}) {
 
   w(`  ${bold("What filled the context")}  ${dim("(cost of carrying it, call after call)")}`);
   const fills = [
-    ["Startup: prompt, tools, skills", R.startup.usd],
+    ["Startup context", R.startup.usd],
     ...Object.entries(R.tools)
       .sort((a, b) => b[1].usd - a[1].usd)
       .slice(0, 5)
@@ -80,7 +80,7 @@ export function render(R, { color = true } = {}) {
   if (R.fixes.length) {
     w(`  ${bold("Top fixes")}  ${dim("saving estimated from your own logs")}`);
     R.fixes.slice(0, 5).forEach((f, i) => {
-      w(`  ${amber(`${i + 1}.`)} ${bold(f.title)}  ${green(`~${$(f.saves)}`)}${f.auto ? dim("  · tare fix applies it") : dim("  · a habit, not a switch")}`);
+      w(`  ${amber(`${i + 1}.`)} ${bold(f.title)}  ${green(`~${$(f.saves)}`)}${dim(`  · ${f.auto || "a habit, not a switch"}`)}`);
       w(`     ${dim(wrap(f.detail, 72).join("\n     "))}`);
     });
     w();

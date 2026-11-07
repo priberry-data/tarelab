@@ -1,7 +1,19 @@
 {
   "name": "priberry",
-  "owner": { "name": "Priberry", "email": "hello@priberry.com" },
+  "description": "Priberry's tools for AI coding agents: Crumple crash-tests your agent setup for safety, Tare shows and cuts what it wastes in tokens.",
+  "owner": {
+    "name": "Priberry",
+    "email": "hello@priberry.com"
+  },
   "plugins": [
+    {
+      "name": "crumple",
+      "source": {
+        "source": "github",
+        "repo": "priberry-data/crumplelab"
+      },
+      "description": "The crash test for AI coding agents: scan, harden, prove."
+    },
     {
       "name": "tare",
       "source": "./",

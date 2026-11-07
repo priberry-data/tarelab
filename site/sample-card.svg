@@ -8,11 +8,11 @@
 <rect x="48" y="38" width="24" height="24" fill="#FFC24B"/><text x="54" y="57" font-size="18" fill="#0B0905" font-weight="600" >t</text>
 <text x="84" y="57" font-size="20" fill="#F2DFB8" font-weight="600" >tare</text><text x="140" y="57" font-size="18" fill="#9A8460" font-weight="400" >· YOUR AGENT, WRAPPED</text>
 <text x="1152" y="57" font-size="18" fill="#9A8460" font-weight="400" text-anchor="end">LAST 30 DAYS</text>
-<text x="56" y="168" font-size="84" fill="#FFC24B" font-weight="600" opacity=".35" stroke="#FFC24B" stroke-width="6" stroke-linejoin="round">$6,714</text><text x="56" y="168" font-size="84" fill="#FFC24B" font-weight="600" >$6,714</text>
+<text x="56" y="168" font-size="84" fill="#FFC24B" font-weight="600" opacity=".35" stroke="#FFC24B" stroke-width="6" stroke-linejoin="round">$6,720</text><text x="56" y="168" font-size="84" fill="#FFC24B" font-weight="600" >$6,720</text>
 <text x="60" y="204" font-size="20" fill="#9A8460" font-weight="400" >API-equivalent spend on my coding agent</text>
-<text x="60" y="246" font-size="24" fill="#7CE38B" font-weight="600" >$620 of it was avoidable (9%)</text>
-<text x="760" y="128" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">sessions   </text><text x="1152" y="128" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">253</text>
-<text x="760" y="168" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">API calls  </text><text x="1152" y="168" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">79,840</text>
+<text x="60" y="246" font-size="24" fill="#7CE38B" font-weight="600" >$623 of it was avoidable (9%)</text>
+<text x="760" y="128" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">sessions   </text><text x="1152" y="128" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">254</text>
+<text x="760" y="168" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">API calls  </text><text x="1152" y="168" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">79,905</text>
 <text x="760" y="208" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">per commit </text><text x="1152" y="208" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">$3.88</text>
 <text x="760" y="248" font-size="20" fill="#9A8460" font-weight="400" xml:space="preserve">top model  </text><text x="1152" y="248" font-size="22" fill="#F2DFB8" font-weight="600" text-anchor="end">Opus 5.5 92%</text>
 <line x1="56" y1="282" x2="1144" y2="282" stroke="#3E301A" stroke-width="2" stroke-dasharray="6 6"/>

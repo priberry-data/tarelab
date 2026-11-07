@@ -76,7 +76,8 @@ export function trimText(text, opts = TRIM) {
 export function trimHook(input) {
   if (input.tool_name !== "Bash") return null;
   const r = input.tool_response;
-  if (!r || typeof r !== "object" || r.isImage) return null;
+  // Claude Code moves very large output to a file itself and shows the agent a short preview.
+  if (!r || typeof r !== "object" || r.isImage || r.persistedOutputPath) return null;
   const stdout = typeof r.stdout === "string" ? r.stdout : "";
   const stderr = typeof r.stderr === "string" ? r.stderr : "";
   const so = trimText(stdout);
@@ -85,6 +86,7 @@ export function trimHook(input) {
 
   const dir = path.join(TARE_HOME, "out");
   fs.mkdirSync(dir, { recursive: true });
+  pruneOld(dir);
   const id = crypto.createHash("sha1").update(`${input.session_id}|${input.tool_use_id || Date.now()}|${stdout.length}`).digest("hex").slice(0, 12);
   const file = path.join(dir, `${id}.log`);
   fs.writeFileSync(file, `$ ${input.tool_input?.command ?? ""}\n\n${stdout}${stderr ? `\n--- stderr ---\n${stderr}` : ""}`);
@@ -96,6 +98,17 @@ export function trimHook(input) {
       updatedToolOutput: { ...r, stdout: (so ? so.text : stdout) + note, stderr: se ? se.text : stderr },
     },
   };
+}
+
+// Saved outputs can hold anything a command printed, so they are kept for a week, not forever.
+const KEEP_DAYS = 7;
+function pruneOld(dir, now = Date.now()) {
+  try {
+    for (const f of fs.readdirSync(dir)) {
+      const p = path.join(dir, f);
+      if (now - fs.statSync(p).mtimeMs > KEEP_DAYS * 86400_000) fs.rmSync(p, { force: true });
+    }
+  } catch {}
 }
 
 function logSaving(session, tokens) {

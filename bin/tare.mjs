@@ -13,9 +13,10 @@ import { progress } from "../src/ui.mjs";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const { version: VERSION } = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
 
-const { values: opt, positionals } = parseArgs({
+let parsed;
+try {
+  parsed = parseArgs({
   allowPositionals: true,
-  strict: false,
   options: {
     days: { type: "string", default: "30" },
     all: { type: "boolean" },
@@ -29,7 +30,16 @@ const { values: opt, positionals } = parseArgs({
     help: { type: "boolean", short: "h" },
     version: { type: "boolean", short: "v" },
   },
-});
+  });
+} catch (e) {
+  // A guard run by a hook must never block the agent, so it ignores flags it doesn't know.
+  if (process.argv[2] === "guard") parsed = { values: {}, positionals: process.argv.slice(2).filter((a) => !a.startsWith("-")) };
+  else {
+    console.error(`tare: ${e.message}\nRun \`npx tarelab --help\` for the commands and options.`);
+    process.exit(2);
+  }
+}
+const { values: opt, positionals } = parsed;
 
 const HELP = `tare ${VERSION}: same work, fewer tokens, with the receipt.
 
@@ -49,12 +59,13 @@ const cmd = positionals[0] || "wrapped";
 const days = opt.all ? 0 : Number(opt.days) || 30;
 
 async function runAnalysis() {
-  const p = opt.json ? null : progress({ total: 0, label: "reading session logs" });
+  let p = null;
   try {
     return await analyze({
       days,
       root: opt.logs,
-      onProgress: p ? (d, t) => { p.total = t; p.tick(`${d}/${t}`); } : undefined,
+      onStart: opt.json ? undefined : (total) => (p = progress({ total, label: "reading session logs" })),
+      onProgress: () => p?.tick(),
     });
   } finally {
     p?.stop();
