@@ -31,7 +31,7 @@
 <a class="skip" href="#main">skip to content</a>
 
 <header class="bar" role="banner">
-  <a class="home" href="/" aria-label="tare home"><span class="logo" aria-hidden="true">t<i></i></span>tare<span class="dim ver"> 0.1.0</span></a>
+  <a class="home" href="/" aria-label="tare home"><span class="logo" aria-hidden="true">t<i></i></span>tare<span class="dim ver"> 0.2.0</span></a>
   <nav aria-label="Sections">
     <a href="#how"><kbd>1</kbd>how</a>
     <a href="#wrapped"><kbd>2</kbd>wrapped</a>
@@ -52,7 +52,7 @@
 <main id="main">
 
 <section class="hero" aria-labelledby="hero-title">
-  <pre class="boot dim dev" aria-hidden="true">tare scale v0.1.0 · (c) 2026 priberry
+  <pre class="boot dim dev" aria-hidden="true">tare scale v0.2.0 · (c) 2026 priberry
 logs ................... found<span class="x">  ~/.claude/projects</span>
 prices ................. ok<span class="x">  cache reads, cache writes and output, each at its own rate</span>
 network ................ off<span class="x">  nothing leaves this machine</span>
@@ -65,7 +65,7 @@ scale .................. zeroed</pre>
   <p class="tagline pub">Find out what your AI coding assistant really costs, and cut the waste.</p>
 
   <p class="lede dev">Your coding agent keeps a log of every call it makes. Tare reads those logs, prices every token, and shows you <b>where the money went</b>: the context you carry on every call, the test logs that sit there for an hour, the cache that went cold while you made coffee. Then it cuts the waste <b>without breaking the prompt cache</b>, and proves each saving on your own work.</p>
-  <p class="lede pub">AI coding assistants such as Claude Code bill by the token, and most teams can't see where those tokens go. Tare reads the records the assistant already keeps on each computer, shows what the work cost and what was wasted, switches on the fixes that are safe, and later shows <b>whether they really saved money</b> without slowing the work down.</p>
+  <p class="lede pub">AI coding assistants such as Claude Code, Codex and Cline bill by the token, and most teams can't see where those tokens go. Tare reads the records the assistant already keeps on each computer, shows what the work cost and what was wasted, switches on the fixes that are safe, and later shows <b>whether they really saved money</b> without slowing the work down.</p>
 
   <pre class="out install"><span class="p">$</span> <span data-copy>npx tarelab</span></pre>
   <div class="ctas">
@@ -102,7 +102,7 @@ scale .................. zeroed</pre>
   <p class="big pub">See the cost. Cut the waste. Prove the saving. It all happens on your own computer.</p>
   <dl class="man">
     <dt><span class="dev"><span class="p">$</span> <span data-copy>npx tarelab</span></span><span class="pub">1. See</span></dt>
-    <dd><span class="dev">Reads Claude Code's session logs, prices every call (fresh input, cache writes at 5-minute and 1-hour rates, cache reads, output, thinking) and attributes the spend: startup context, each tool's output, sub-agents, cache rebuilds. Your Wrapped in seconds; cached, so the second run takes under one.</span><span class="pub">Tare reads the assistant's own records and turns them into a bill you can understand: what was spent, on which projects, and what was wasted.</span></dd>
+    <dd><span class="dev">Reads the session logs of Claude Code, Codex CLI, Gemini CLI, Cline, Roo Code and Kilo Code, prices every call (fresh input, cache writes at 5-minute and 1-hour rates, cache reads, output, thinking) and attributes the spend: startup context, each tool's output, sub-agents, cache rebuilds. Your Wrapped in seconds; cached, so the second run takes under one.</span><span class="pub">Tare reads the assistant's own records and turns them into a bill you can understand: what was spent, on which projects, and what was wasted.</span></dd>
     <dt><span class="dev"><span class="p">$</span> <span data-copy>tare fix</span></span><span class="pub">2. Cut</span></dt>
     <dd><span class="dev">Installs fixes that cut waste where it enters the context, never by rewriting history, so the prompt cache stays intact. Backed up first; <code>tare fix --undo</code> restores your settings exactly.</span><span class="pub">Tare switches on a few safe changes that stop waste before it happens. Every change can be undone with one command.</span></dd>
     <dt><span class="dev"><span class="p">$</span> <span data-copy>tare receipt</span></span><span class="pub">3. Prove</span></dt>
@@ -196,7 +196,7 @@ scale .................. zeroed</pre>
     <details><summary>I'm on a subscription. Does this matter to me?</summary><p>The dollar figures are what the same work would cost at API prices, so you can compare setups and see waste. On a subscription, waste shows up as hitting your usage limits sooner; the fixes help with that too.</p></details>
     <details><summary>Will the fixes make my agent worse?</summary><p>The output trim keeps every line that looks like a failure, plus the start and end, and saves the full output where the agent can read it. The receipt checks that sessions still finish, and <code>tare fix --undo</code> removes everything.</p></details>
     <details><summary>Why not just compress the context?</summary><p>Rewriting what's already in context breaks the prompt cache. A cache miss costs 12.5 to 25 times a hit, so a tool can cut tokens and still raise the bill. Tare only trims new content, as it enters.</p></details>
-    <details><summary>Which agents does it support?</summary><p>Claude Code today. Codex CLI and Gemini CLI logs are next. The skill works in Claude Code and Codex now, and the MCP server works with any agent that speaks MCP.</p></details>
+    <details><summary>Which agents does it support?</summary><p>Tare reads the logs these agents keep on your machine: Claude Code, Codex CLI (including how close you came to your ChatGPT plan's usage limits), Gemini CLI, and Cline, Roo Code and Kilo Code in VS Code, Cursor, Windsurf and other VS Code-based editors. Cursor's own agent, Windsurf's Cascade, Copilot and the browser app builders keep usage on their servers, so Tare can't see those yet. The fixes and the receipt work on Claude Code, where the hooks exist. <code>npx tarelab setup</code> adds Tare to every AI coding app you have.</p></details>
     <details><summary>Are you affiliated with Anthropic?</summary><p>No. Tare is independent and built by Priberry, the team behind <a href="https://crumple.priberry.com">Crumple</a>.</p></details>
   </div>
 </section>
@@ -212,16 +212,26 @@ scale .................. zeroed</pre>
     <dt><span class="p">$</span> <span data-copy>npx tarelab card</span></dt>
     <dd>Make the shareable card, with a PNG download.</dd>
   </dl>
-  <h3 class="sub">Inside your agent</h3>
+  <h3 class="sub">Works in every AI coding app</h3>
+  <dl class="man">
+    <dt><span class="p">$</span> <span data-copy>npx tarelab setup</span></dt>
+    <dd>Finds every AI coding app on your machine and adds Tare to each: Claude Code, Claude Desktop, Cursor, VS Code, Windsurf, Codex, Gemini CLI, Kiro, opencode, Amazon Q, LM Studio, and Cline, Roo Code and Kilo Code. Pinned to the exact version, each file backed up first, <code>--undo</code> takes it out. Then ask "what did my agent cost this month?"</dd>
+  </dl>
+  <div class="ctas">
+    <a class="key" href="cursor://anysphere.cursor-deeplink/mcp/install?name=tare&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsInRhcmVsYWJAMC4yLjAiLCJtY3AiXX0=">[ add to cursor ]</a>
+    <a class="key" href="vscode:mcp/install?%7B%22name%22%3A%22tare%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22tarelab%400.2.0%22%2C%22mcp%22%5D%7D">[ add to vs code ]</a>
+  </div>
   <dl class="man">
     <dt>Claude Code plugin</dt>
-    <dd><code data-copy>/plugin marketplace add priberry-data/tarelab</code>, then <code>/plugin install tare@priberry</code>. Adds the skill and the MCP server; ask "what did my agent cost this month?"</dd>
+    <dd><code data-copy>/plugin marketplace add priberry-data/tarelab</code>, then <code>/plugin install tare@priberry</code>.</dd>
+    <dt>Gemini CLI extension</dt>
+    <dd><code data-copy>gemini extensions install https://github.com/priberry-data/tarelab</code></dd>
     <dt>Skill (Claude Code or Codex)</dt>
     <dd>Copy <code>skills/tare</code> from the repo into <code>~/.claude/skills/</code> or <code>~/.codex/skills/</code>.</dd>
-    <dt>MCP server (any agent)</dt>
-    <dd><code data-copy>npx -y tarelab mcp</code> over stdio. Tools: <code>tare_wrapped</code>, <code>tare_receipt</code>, <code>tare_cache</code>.</dd>
+    <dt>Any other MCP client</dt>
+    <dd><code data-copy>npx -y tarelab@0.2.0 mcp</code> over stdio. Tools: <code>tare_wrapped</code>, <code>tare_receipt</code>, <code>tare_cache</code>.</dd>
   </dl>
-  <p class="dim">Version 0.1. Tell us what breaks: <a href="mailto:hello@priberry.com?subject=tare">hello@priberry.com</a> · <a href="https://github.com/priberry-data/tarelab/issues">github issues</a></p>
+  <p class="dim">Version 0.2. Tell us what breaks: <a href="mailto:hello@priberry.com?subject=tare">hello@priberry.com</a> · <a href="https://github.com/priberry-data/tarelab/issues">github issues</a></p>
 </section>
 
 </main>

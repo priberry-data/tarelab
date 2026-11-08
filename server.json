@@ -1,0 +1,28 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.priberry-data/tarelab",
+  "title": "Tare",
+  "description": "See where your coding agent's tokens and money went, with cache-safe fixes. Local.",
+  "websiteUrl": "https://tare.priberry.com",
+  "repository": {
+    "url": "https://github.com/priberry-data/tarelab",
+    "source": "github"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "tarelab",
+      "version": "0.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ]
+    }
+  ]
+}

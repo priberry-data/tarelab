@@ -5,10 +5,11 @@ import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { summarizeLog } from "./logs.mjs";
+import { findAgentLogs, summarizeAgent } from "./agents.mjs";
 import { modelName } from "./prices.mjs";
 
 export const TARE_HOME = process.env.TARE_HOME || path.join(os.homedir(), ".tare");
-const CACHE_VERSION = "3";
+const CACHE_VERSION = "4";
 
 export function findLogs(root = path.join(os.homedir(), ".claude", "projects")) {
   const out = [];
@@ -29,13 +30,13 @@ export function findLogs(root = path.join(os.homedir(), ".claude", "projects")) 
   return out;
 }
 
-async function cachedSummary(file, st) {
+async function cachedSummary(file, st, read = () => summarizeLog(file)) {
   const key = crypto.createHash("sha1").update(`${CACHE_VERSION}|${file}|${st.size}|${st.mtimeMs}`).digest("hex");
   const cf = path.join(TARE_HOME, "cache", key + ".json");
   try {
     return JSON.parse(fs.readFileSync(cf, "utf8"));
   } catch {}
-  const s = await summarizeLog(file);
+  const s = await read();
   try {
     fs.mkdirSync(path.dirname(cf), { recursive: true });
     fs.writeFileSync(cf, JSON.stringify(s));
@@ -57,12 +58,22 @@ const top = (map, n = 5, by = "usd") =>
     .sort((a, b) => (b[1][by] ?? b[1]) - (a[1][by] ?? a[1]))
     .slice(0, n);
 
-export async function analyze({ days = 30, root, onStart, onProgress } = {}) {
+// `root` points at a folder of Claude Code logs; `home` is where the other agents' logs are looked for.
+// A test that passes only `root` gets only that folder.
+export async function analyze({ days = 30, root, home, onStart, onProgress } = {}) {
   const since = days ? Date.now() - days * 86400_000 : 0;
   const sinceDay = days ? new Date(since).toISOString().slice(0, 10) : "";
-  const files = findLogs(root)
-    .map((f) => ({ f, st: fs.statSync(f) }))
-    .filter(({ st }) => st.mtimeMs >= since);
+  const others = root && !home ? [] : findAgentLogs(home);
+  const stat = (f) => {
+    try {
+      return fs.statSync(f);
+    } catch {
+      return null;
+    }
+  };
+  const files = [...findLogs(root).map((f) => ({ f })), ...others]
+    .map((x) => ({ ...x, st: stat(x.f) }))
+    .filter(({ st }) => st && st.mtimeMs >= since);
 
   onStart?.(files.length);
   const summaries = [];
@@ -72,7 +83,7 @@ export async function analyze({ days = 30, root, onStart, onProgress } = {}) {
     Array.from({ length: 6 }, async () => {
       for (let job; (job = queue.shift()); ) {
         try {
-          summaries.push(await cachedSummary(job.f, job.st));
+          summaries.push(await cachedSummary(job.f, job.st, job.kind ? () => summarizeAgent(job) : undefined));
         } catch {}
         onProgress?.(++done, files.length);
       }
@@ -88,7 +99,9 @@ export async function analyze({ days = 30, root, onStart, onProgress } = {}) {
     calls: 0,
     unpriced: 0,
     usd: 0,
-    cost: { input: 0, write: 0, read: 0, output: 0, thinking: 0 },
+    cost: { input: 0, write: 0, read: 0, output: 0, thinking: 0, reported: 0 },
+    byAgent: {},
+    limits: null,
     byModel: {},
     byDay: {},
     byHour: Array(24).fill(0),
@@ -121,7 +134,20 @@ export async function analyze({ days = 30, root, onStart, onProgress } = {}) {
     R.calls += s.calls;
     R.unpriced += s.unpriced;
     R.usd += inWin;
-    for (const c of Object.keys(R.cost)) R.cost[c] += s.cost[c] * k;
+    for (const c of Object.keys(R.cost)) R.cost[c] += (s.cost[c] || 0) * k;
+    const agent = s.agent || "Claude Code";
+    const a = (R.byAgent[agent] ||= { usd: 0, calls: 0, sessions: 0, tokens: 0 });
+    a.usd += inWin;
+    a.calls += s.calls;
+    if (!s.sub) a.sessions++;
+    if (s.limits) {
+      const L = (R.limits ||= { peak5h: 0, peakWeek: 0, hits: 0, sessions: 0, plan: null });
+      L.peak5h = Math.max(L.peak5h, s.limits.peak5h);
+      L.peakWeek = Math.max(L.peakWeek, s.limits.peakWeek);
+      L.hits += s.limits.hits;
+      L.sessions++;
+      L.plan = s.limits.plan || L.plan;
+    }
     for (const [m, v] of Object.entries(s.byModel)) R.byModel[m] = (R.byModel[m] || 0) + v * k;
     for (const [d, v] of Object.entries(s.byDay)) if (d >= sinceDay) R.byDay[d] = (R.byDay[d] || 0) + v;
     s.byHour.forEach((v, h) => (R.byHour[h] += v * k));
@@ -145,7 +171,8 @@ export async function analyze({ days = 30, root, onStart, onProgress } = {}) {
     for (const m of s.mcpLoaded) R.mcpLoaded[m] = (R.mcpLoaded[m] || 0) + 1;
     for (const m of Object.keys(s.mcp)) R.mcpUsed.add(m);
     for (const sk of s.skillsUsed) R.skillsUsed.add(sk);
-    if (!s.sub)
+    // The receipt measures Claude Code sessions, where Tare's fixes apply.
+    if (!s.sub && !s.agent)
       R.sessionList.push({ session: s.session, project: s.project, start: s.start, end: s.end, usd: full, prompts: s.prompts, commits: s.commits, calls: s.calls });
   }
   // Sub-agent cost belongs to the session that started it.
@@ -266,5 +293,9 @@ function lines(R) {
   const hour = R.byHour.indexOf(Math.max(...R.byHour));
   if (R.usd) L.push(`Peak hour: ${String(hour).padStart(2, "0")}:00.`);
   if (R.commits) L.push(`${$(R.usd / R.commits)} per commit, ${R.commits} commits.`);
+  const agents = Object.entries(R.byAgent).sort((a, b) => b[1].usd - a[1].usd);
+  if (agents.length > 1) L.push(`${agents.length} agents: ${agents.map(([n, a]) => `${n} ${$(a.usd)}`).join(", ")}.`);
+  if (R.limits?.hits) L.push(`Codex hit your plan's usage limit ${R.limits.hits} time${R.limits.hits > 1 ? "s" : ""}.`);
+  else if (R.limits?.peakWeek >= 50) L.push(`Codex used up to ${Math.round(R.limits.peakWeek)}% of your weekly plan limit.`);
   return L;
 }

@@ -3,7 +3,9 @@
 **Same work, fewer tokens, with the receipt.**
 
 Your coding agent keeps a log of every API call it makes. Tare reads those logs, prices every token,
-and shows where the money went. Then it cuts the waste without breaking the prompt cache, and proves
+and shows where the money went: Claude Code, Codex CLI, Gemini CLI, and Cline, Roo Code and Kilo Code
+in VS Code, Cursor, Windsurf and the other VS Code-based editors. For Codex on a ChatGPT plan it also
+shows how close you came to the plan's usage limits. Then it cuts the waste without breaking the prompt cache, and proves
 each saving on your own work. It runs locally, uploads nothing and never calls a model.
 
 ```
@@ -38,6 +40,7 @@ npx tarelab
 | `tare fix` | Installs the output trim and the cache status line. `--dry-run`, `--undo`, `--scope project` |
 | `tare receipt` | Cost per commit before and after `tare fix`, with a 90% range and a finish-rate check |
 | `tare status` | What is installed, and how much output the trim has cut so far |
+| `tare setup` | Adds Tare to every AI coding app on this machine. `--dry-run`, `--undo` |
 | `tare mcp` | MCP server over stdio: `tare_wrapped`, `tare_receipt`, `tare_cache` |
 
 ## How the numbers work
@@ -72,15 +75,28 @@ on either side it prints "not enough data" and no number.
 
 ## In your agent
 
-- **Claude Code plugin:** `/plugin marketplace add priberry-data/tarelab`, then `/plugin install tare@priberry`
-  (or in one step: `/plugin install tare --marketplace priberry-data/tarelab`).
+One command adds Tare to every AI coding app it finds: Claude Code, Claude Desktop, Cursor, VS Code,
+Windsurf, Codex, Gemini CLI, Kiro, opencode, Amazon Q, LM Studio, and Cline, Roo Code and Kilo Code.
+The entry is pinned to the exact version, each file is backed up first, and `--undo` removes it.
+
+```
+npx tarelab setup
+```
+
+Or one app at a time:
+
+- **Claude Code plugin:** `/plugin marketplace add priberry-data/tarelab`, then `/plugin install tare@priberry`.
+- **Gemini CLI extension:** `gemini extensions install https://github.com/priberry-data/tarelab`
 - **Skill (Claude Code or Codex):** copy `skills/tare` into `~/.claude/skills/` or `~/.codex/skills/`.
-- **MCP (any agent):** `{"command": "npx", "args": ["-y", "tarelab", "mcp"]}`.
+- **Any MCP client:** `{"command": "npx", "args": ["-y", "tarelab@0.2.0", "mcp"]}`. Then ask "what did my agent cost this month?"
 
 ## Limits
 
-Reads Claude Code logs today; Codex CLI and Gemini CLI are next. Token counts for tool output are
+Tare reads the logs that agents keep on your machine. Cursor's own agent, Windsurf's Cascade, Copilot
+and the browser app builders (Lovable, Bolt, v0, Replit) keep usage on their servers, so Tare can't see
+them yet; opencode is next. Cline-family costs are the ones the extension itself recorded. The
+`fix` and `receipt` commands work on Claude Code, where the hooks exist. Token counts for tool output are
 estimated from text length (the API reports totals per call, not per block). Prices are as of
-2026-10-06 and live in `src/prices.mjs`.
+2026-10-06 for Anthropic and 2026-11-08 for OpenAI and Google, and live in `src/prices.mjs`.
 
 Apache-2.0 · Built by [Priberry](https://priberry.com), who also make [Crumple](https://crumple.priberry.com).

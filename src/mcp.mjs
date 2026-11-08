@@ -9,7 +9,7 @@ import { priceFor } from "./prices.mjs";
 const TOOLS = [
   {
     name: "tare_wrapped",
-    description: "Where this machine's Claude Code tokens and money went: API-equivalent spend, what filled the context, cache rebuilds, highlights and the top fixes with estimated savings. Local and free.",
+    description: "Where this machine's coding-agent tokens and money went (Claude Code, Codex CLI, Gemini CLI, Cline, Roo Code, Kilo Code): API-equivalent spend, plan-limit use, what filled the context, cache rebuilds, highlights and the top fixes with estimated savings. Local and free.",
     inputSchema: { type: "object", properties: { days: { type: "number", description: "Window in days; 0 for all time. Default 30." } }, additionalProperties: false },
     annotations: { readOnlyHint: true },
   },

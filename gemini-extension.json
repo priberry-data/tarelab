@@ -1,0 +1,15 @@
+{
+  "name": "tare",
+  "version": "0.2.0",
+  "description": "See where your coding agent's tokens and money went, with cache-safe fixes. Local.",
+  "mcpServers": {
+    "tare": {
+      "command": "node",
+      "args": [
+        "${extensionPath}/bin/tare.mjs",
+        "mcp"
+      ],
+      "cwd": "${extensionPath}"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 // Tare Wrapped in the terminal: the bill, where it went, the lines worth sharing, and the fixes.
 import path from "node:path";
 import { usd as $, ktok as K } from "./analyze.mjs";
-import { modelName, PRICES_AS_OF } from "./prices.mjs";
+import { modelName, PRICES_AS_OF, OTHER_PRICES_AS_OF } from "./prices.mjs";
 
 export const BANNER = [
   "████████╗ █████╗ ██████╗ ███████╗",
@@ -49,6 +49,7 @@ export function render(R, { color = true } = {}) {
     ["Writing to the cache", R.cost.write],
     ["Output (thinking incl.)", R.cost.output],
     ["Fresh input", R.cost.input],
+    ["Priced by the tool itself", R.cost.reported || 0],
   ];
   const max = Math.max(...parts.map((p) => p[1]));
   for (const [l, v] of parts) if (v > 0.005) row(l, v, max);
@@ -65,6 +66,13 @@ export function render(R, { color = true } = {}) {
   const fmax = Math.max(...fills.map((f) => f[1]));
   for (const [l, v] of fills) if (v > 0.005) row(l, v, fmax);
   w();
+
+  const agents = Object.entries(R.byAgent || {}).sort((a, b) => b[1].usd - a[1].usd);
+  if (agents.length > 1) {
+    w(`  ${bold("Agents")}`);
+    for (const [n, a] of agents) row(n, a.usd, agents[0][1].usd);
+    w();
+  }
 
   w(`  ${bold("Models")}`);
   const models = Object.entries(R.byModel).sort((a, b) => b[1] - a[1]).slice(0, 4);
@@ -86,7 +94,7 @@ export function render(R, { color = true } = {}) {
     w();
   }
   if (R.unpriced) w(`  ${red("!")} ${dim(`${R.unpriced} calls used a model Tare has no price for; they are left out.`)}`);
-  w(dim(`  Prices: Anthropic API list prices as of ${PRICES_AS_OF}. On a subscription you pay a flat fee;`));
+  w(dim(`  Prices: API list prices (Anthropic as of ${PRICES_AS_OF}, OpenAI and Google as of ${OTHER_PRICES_AS_OF}). On a subscription you pay a flat fee;`));
   w(dim(`  this is what the same work would cost on the API. Nothing left this machine.`));
   return out.join("\n");
 }

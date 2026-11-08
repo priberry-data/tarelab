@@ -1,16 +1,17 @@
 # tare
 
-> Same work, fewer tokens, with the receipt. Tare reads the session logs Claude Code keeps on disk,
+> Same work, fewer tokens, with the receipt. Tare reads the session logs coding agents keep on disk (Claude Code, Codex CLI, Gemini CLI, Cline, Roo Code, Kilo Code),
 > prices every API call at list prices, shows where the tokens and money went, installs cache-safe
 > fixes, and measures cost per commit before and after. Local, free, never calls a model.
 
-Status: v0.1.0, open source (Apache-2.0). Install: npx tarelab. Source: https://github.com/priberry-data/tarelab. Contact: hello@priberry.com. Built by Priberry (also makes Crumple, https://crumple.priberry.com).
+Status: v0.2.0, open source (Apache-2.0). Install: npx tarelab. Source: https://github.com/priberry-data/tarelab. Contact: hello@priberry.com. Built by Priberry (also makes Crumple, https://crumple.priberry.com).
 
 ## Commands
 - `tare` (or `tare wrapped`): spend and attribution for the last 30 days. `--days N`, `--all`, `--json`.
 - `tare card`: shareable 1200x630 card (SVG, PNG download) and post text. Nothing is uploaded.
 - `tare fix [--dry-run] [--undo] [--scope user|project]`: PostToolUse output trim for Bash, and a status line with a cache-warm countdown. Backs up settings first.
 - `tare receipt`: cost per commit before vs after the fixes, 90% bootstrap range, finish rate check; "not enough data" under 8 finished sessions per side.
+- `tare setup [--dry-run] [--undo]`: adds Tare's MCP server, pinned, to every AI coding app found (Claude Code, Claude Desktop, Cursor, VS Code, Windsurf, Codex, Gemini CLI, Kiro, opencode, Amazon Q, LM Studio, Cline, Roo Code, Kilo Code).
 - `tare mcp`: MCP server over stdio. Tools: tare_wrapped, tare_receipt, tare_cache.
 
 ## Terms

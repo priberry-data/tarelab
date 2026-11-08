@@ -1,6 +1,6 @@
 {
   "name": "tarelab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "See where your AI coding agent's tokens go, cut the waste without breaking the prompt cache, and get a receipt for every saving.",
   "type": "module",
   "bin": {
@@ -14,7 +14,10 @@
     ".claude-plugin",
     ".mcp.json",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "server.json",
+    "gemini-extension.json",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=20"
@@ -41,5 +44,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/priberry-data/tarelab.git"
-  }
+  },
+  "mcpName": "io.github.priberry-data/tarelab"
 }

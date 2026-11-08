@@ -138,3 +138,107 @@ test("receipt refuses to call it without enough data, and finds a real 30% savin
   const c = compare(mk(15, 10, 1), mk(15, 10, 21));
   assert.ok(c.lo < 1 && c.hi > 1); // no change -> the range straddles zero
 });
+
+test("other agents: Codex, Gemini and Cline sessions are read, priced and added up", async () => {
+  const { analyze } = await import("../src/analyze.mjs");
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "tare-home-"));
+  const now = new Date();
+  const ts = (min) => new Date(now.getTime() - min * 60_000).toISOString();
+
+  // Codex: two calls, one count sent twice, plan limits in the events.
+  const cdir = path.join(home, ".codex", "sessions", "2026", "11", "08");
+  fs.mkdirSync(cdir, { recursive: true });
+  const usage = (input, cached, output, total) => ({ input_tokens: input, cached_input_tokens: cached, output_tokens: output, reasoning_output_tokens: 0, total_tokens: total });
+  const tc = (min, last, total, used) => ({
+    timestamp: ts(min),
+    type: "event_msg",
+    payload: { type: "token_count", info: { last_token_usage: last, total_token_usage: { total_tokens: total } }, rate_limits: { primary: { used_percent: used, window_minutes: 300 }, secondary: { used_percent: used / 2, window_minutes: 10080 } } },
+  });
+  const codex = [
+    { timestamp: ts(30), type: "session_meta", payload: { id: "c1", cwd: "/work/app" } },
+    { timestamp: ts(30), type: "turn_context", payload: { model: "gpt-5.3-codex", cwd: "/work/app" } },
+    { timestamp: ts(29), type: "response_item", payload: { type: "message", role: "user", content: [] } },
+    tc(28, usage(1_000_000, 800_000, 100_000, 1_100_000), 1_100_000, 40),
+    tc(27, usage(1_000_000, 800_000, 100_000, 1_100_000), 1_100_000, 40),
+    tc(26, usage(1_000_000, 900_000, 0, 1_000_000), 2_100_000, 90),
+  ];
+  fs.writeFileSync(path.join(cdir, "rollout-x.jsonl"), codex.map((e) => JSON.stringify(e)).join("\n"));
+
+  // Gemini: one priced reply in a .json session.
+  const gdir = path.join(home, ".gemini", "tmp", "proj", "chats");
+  fs.mkdirSync(gdir, { recursive: true });
+  fs.writeFileSync(
+    path.join(gdir, "session-1.json"),
+    JSON.stringify({ sessionId: "g1", messages: [{ id: "a", type: "user", timestamp: ts(20) }, { id: "b", type: "gemini", model: "gemini-2.5-flash", timestamp: ts(19), tokens: { input: 1_000_000, output: 100_000, cached: 0, thoughts: 0, total: 1_100_000 } }] }),
+  );
+
+  // Cline in Cursor: cost as Cline reported it.
+  const base = process.platform === "darwin" ? path.join(home, "Library", "Application Support") : path.join(home, ".config");
+  const tdir = path.join(base, "Cursor", "User", "globalStorage", "saoudrizwan.claude-dev", "tasks", "t1");
+  fs.mkdirSync(tdir, { recursive: true });
+  fs.writeFileSync(
+    path.join(tdir, "ui_messages.json"),
+    JSON.stringify([
+      { ts: now.getTime() - 600_000, type: "say", say: "task", text: "x" },
+      { ts: now.getTime() - 590_000, type: "say", say: "api_req_started", text: JSON.stringify({ tokensIn: 10, tokensOut: 5, cacheReads: 0, cacheWrites: 0, cost: 1.5 }) },
+    ]),
+  );
+
+  const prev = process.env.XDG_CONFIG_HOME;
+  delete process.env.XDG_CONFIG_HOME;
+  const R = await analyze({ days: 30, root: path.join(home, "no-claude-here"), home });
+  if (prev) process.env.XDG_CONFIG_HOME = prev;
+
+  // Codex: (200k fresh x 1.75 + 800k cached x 0.175 + 100k out x 14) + (100k x 1.75 + 900k x 0.175) per million
+  const codexUsd = (200_000 * 1.75 + 800_000 * 0.175 + 100_000 * 14 + 100_000 * 1.75 + 900_000 * 0.175) / 1e6;
+  const geminiUsd = (1_000_000 * 0.3 + 100_000 * 2.5) / 1e6;
+  assert.ok(Math.abs(R.byAgent["Codex CLI"].usd - codexUsd) < 1e-9, `codex ${R.byAgent["Codex CLI"]?.usd}`);
+  assert.equal(R.byAgent["Codex CLI"].calls, 2, "a count sent twice is one call");
+  assert.ok(Math.abs(R.byAgent["Gemini CLI"].usd - geminiUsd) < 1e-9);
+  assert.equal(R.byAgent["Cline in Cursor"].usd, 1.5);
+  assert.equal(R.cost.reported, 1.5);
+  assert.equal(R.limits.peak5h, 90);
+  assert.equal(R.limits.peakWeek, 45);
+  assert.ok(R.lines.some((l) => /3 agents/.test(l)));
+  assert.equal(R.sessionList.length, 0, "the receipt only counts Claude Code sessions");
+});
+
+test("setup adds a pinned MCP entry to each app found, leaves the rest alone, and undoes cleanly", async () => {
+  const { setup } = await import("../src/clients.mjs");
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "tare-setup-"));
+  const app = process.platform === "darwin" ? path.join(home, "Library", "Application Support") : path.join(home, ".config");
+  fs.mkdirSync(path.join(home, ".cursor"));
+  fs.writeFileSync(path.join(home, ".cursor", "mcp.json"), JSON.stringify({ mcpServers: { other: { command: "x" } } }));
+  fs.mkdirSync(path.join(app, "Code", "User"), { recursive: true });
+  const vsc = '{\n  // mine\n  "servers": {}\n}\n';
+  fs.writeFileSync(path.join(app, "Code", "User", "mcp.json"), vsc);
+  fs.mkdirSync(path.join(home, ".codex"));
+  const toml = 'model = "gpt-5.3-codex"\n\n[mcp_servers.other]\ncommand = "y"\n';
+  fs.writeFileSync(path.join(home, ".codex", "config.toml"), toml);
+  fs.mkdirSync(path.join(home, ".config", "opencode"), { recursive: true });
+  const prevCodex = process.env.CODEX_HOME;
+  delete process.env.CODEX_HOME;
+  const opts = { name: "tare", pkg: "tarelab", version: "9.9.9", home, backupDir: path.join(home, "bk"), claudeCli: false };
+
+  const rows = setup(opts);
+  const by = Object.fromEntries(rows.map((r) => [r.client, r.status]));
+  assert.equal(by.Cursor, "added");
+  assert.equal(by["VS Code"], "skipped", "a file with comments is never rewritten");
+  assert.equal(by.Codex, "added");
+  assert.equal(by.opencode, "added");
+  assert.equal(by.Windsurf, undefined, "apps that aren't installed are left out");
+  const cursor = JSON.parse(fs.readFileSync(path.join(home, ".cursor", "mcp.json"), "utf8"));
+  assert.deepEqual(cursor.mcpServers.tare, { command: "npx", args: ["-y", "tarelab@9.9.9", "mcp"] });
+  assert.ok(cursor.mcpServers.other);
+  assert.equal(fs.readFileSync(path.join(app, "Code", "User", "mcp.json"), "utf8"), vsc);
+  assert.match(fs.readFileSync(path.join(home, ".codex", "config.toml"), "utf8"), /\[mcp_servers\.tare\]\ncommand = "npx"\nargs = \["-y", "tarelab@9\.9\.9", "mcp"\]/);
+  const oc = JSON.parse(fs.readFileSync(path.join(home, ".config", "opencode", "opencode.json"), "utf8"));
+  assert.deepEqual(oc.mcp.tare.command, ["npx", "-y", "tarelab@9.9.9", "mcp"]);
+
+  assert.ok(setup(opts).filter((r) => r.status !== "skipped").every((r) => r.status === "already there"), "running it twice changes nothing");
+
+  setup({ ...opts, undo: true });
+  assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(path.join(home, ".cursor", "mcp.json"), "utf8")).mcpServers), ["other"]);
+  assert.equal(fs.readFileSync(path.join(home, ".codex", "config.toml"), "utf8").trim(), toml.trim());
+  if (prevCodex) process.env.CODEX_HOME = prevCodex;
+});

@@ -43,16 +43,18 @@ const { values: opt, positionals } = parsed;
 
 const HELP = `tare ${VERSION}: same work, fewer tokens, with the receipt.
 
-  tare [wrapped]        Where your Claude Code tokens went (last 30 days). Local, zero tokens.
+  tare [wrapped]        Where your coding agents' tokens went (last 30 days). Local, zero tokens.
        --days N | --all   Choose the window.       --json   Machine-readable output.
   tare card             Write the shareable Wrapped card (HTML + SVG) and open it.
-  tare fix              Install the cache-safe fixes as Claude Code hooks (output trim, repeat guard).
+  tare fix              Install the cache-safe fixes in Claude Code (output trim, cache countdown).
        --scope user|project   Where to install.   --dry-run   Show the change only.   --undo   Remove them.
   tare receipt          Cost per session and per commit before vs after tare fix, with a range.
   tare status           What is installed and what it has saved so far.
+  tare setup            Add Tare to every AI coding app on this machine (Cursor, VS Code, Windsurf,
+                        Claude, Codex, Gemini CLI, Cline, Kiro and more).  --dry-run   --undo
   tare mcp              Run Tare as an MCP server (stdio) for any agent.
 
-Nothing leaves this machine. Prices are Anthropic API list prices; on a subscription this is
+Nothing leaves this machine. Prices are API list prices; on a subscription this is
 "API-equivalent" cost. Docs: https://tare.priberry.com · Issues: github.com/priberry-data/tarelab`;
 
 const cmd = positionals[0] || "wrapped";
@@ -80,7 +82,10 @@ async function main() {
     if (!opt.json) process.stdout.write(banner({ version: VERSION, tagline: "Same work, fewer tokens, with the receipt." }));
     const R = await runAnalysis();
     if (opt.json) return console.log(JSON.stringify(R, null, 2));
-    if (!R.calls) return console.log("  No Claude Code sessions found in this window. Try --all, or --logs <dir>.");
+    if (!R.calls)
+      return console.log(
+        "  No agent sessions found in this window. Tare reads Claude Code, Codex CLI, Gemini CLI, and Cline,\n  Roo Code and Kilo Code in VS Code, Cursor, Windsurf and other VS Code-based editors.\n  Try --all, or --logs <dir> for Claude Code logs somewhere else.",
+      );
     console.log(render(R, { color: Boolean(process.stdout.isTTY && !process.env.NO_COLOR) }));
     console.log(`\n  Next: ${"tare card"} for a shareable card · ${"tare fix"} to apply the fixes\n`);
     return;
@@ -111,6 +116,11 @@ async function main() {
   if (cmd === "guard") {
     const { runGuard } = await import("../src/guard.mjs");
     return runGuard(positionals[1]);
+  }
+  if (cmd === "setup") {
+    const { setup, renderSetup } = await import("../src/clients.mjs");
+    const rows = setup({ name: "tare", pkg: "tarelab", version: VERSION, dryRun: opt["dry-run"], undo: opt.undo, backupDir: path.join(TARE_HOME, "backups") });
+    return console.log(renderSetup(rows, { name: "Tare", undo: opt.undo, dryRun: opt["dry-run"], color: Boolean(process.stdout.isTTY && !process.env.NO_COLOR) }));
   }
   if (cmd === "mcp") {
     const { serve } = await import("../src/mcp.mjs");
