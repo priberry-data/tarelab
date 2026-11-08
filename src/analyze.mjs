@@ -190,6 +190,10 @@ export async function analyze({ days = 30, root, home, onStart, onProgress } = {
   R.skillsUsed = [...R.skillsUsed];
   R.startup.median = median(R.startup.tokens);
   R.startup.parts = Object.fromEntries(Object.entries(R.startup.parts).map(([p, v]) => [p, median(v)]));
+  // The agent's own instructions and built-in tool definitions never appear in the log, so the
+  // listed parts fall short of the measured total; show the rest as its own line.
+  const listed = Object.values(R.startup.parts).reduce((a, b) => a + b, 0);
+  if (Object.keys(R.startup.parts).length && R.startup.median - listed > 1000) R.startup.parts["built-in instructions and tools"] = R.startup.median - listed;
   delete R.startup.tokens;
   R.fixes = fixes(R);
   R.lines = lines(R);
