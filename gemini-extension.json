@@ -1,6 +1,6 @@
 {
   "name": "tare",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "See where your coding agent's tokens and money went, with cache-safe fixes. Local.",
   "mcpServers": {
     "tare": {

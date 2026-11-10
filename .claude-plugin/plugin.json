@@ -1,6 +1,6 @@
 {
   "name": "tare",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "See where your agent's tokens go, cut the waste without breaking the prompt cache, and get a receipt for every saving. Local, zero tokens.",
   "author": {
     "name": "Priberry",

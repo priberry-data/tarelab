@@ -79,7 +79,11 @@ async function main() {
   if (opt.help || cmd === "help") return console.log(HELP);
 
   if (cmd === "wrapped") {
-    if (!opt.json) process.stdout.write(banner({ version: VERSION, tagline: "Same work, fewer tokens, with the receipt." }));
+    // The welcome screen heads the report in a wide terminal; a narrower one gets the smaller banner.
+    if (!opt.json) {
+      const { welcome } = await import("../src/welcome.mjs");
+      process.stdout.write(welcome({ version: VERSION }) || banner({ version: VERSION, tagline: "Same work, fewer tokens, with the receipt." }));
+    }
     const R = await runAnalysis();
     if (opt.json) return console.log(JSON.stringify(R, null, 2));
     if (!R.calls)

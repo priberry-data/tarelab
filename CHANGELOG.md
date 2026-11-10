@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- A welcome screen: in a wide terminal, Tare's report now opens with a pixel-art balance, a stack of tokens on the heavy pan, and the three commands that matter. Pipes, CI, `NO_COLOR`, `--json` and narrow windows get plain text as before.
+
 ## 0.2.0
 
 - Reads more agents than Claude Code: Codex CLI (with how close you came to your ChatGPT plan's usage limits),
