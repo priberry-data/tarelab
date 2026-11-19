@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to cut Claude Code token costs: where the tokens actually go · tare</title>
+<meta name="description" content="Most Claude Code spend isn't the model thinking. It's context being re-read and the prompt cache going cold. Seven ways to cut token cost without breaking the cache, from a real month of logs.">
+<link rel="canonical" href="https://tare.priberry.com/guides/claude-code-cost/">
+<meta name="theme-color" content="#0B0905">
+<link rel="icon" href="/brand/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="tare">
+<meta property="og:title" content="How to cut Claude Code token costs: where the tokens actually go">
+<meta property="og:description" content="Most of the spend is context being re-read and the cache going cold. Seven fixes that don't break the prompt cache.">
+<meta property="og:url" content="https://tare.priberry.com/guides/claude-code-cost/">
+<meta property="og:image" content="https://tare.priberry.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<script src="/mode.js"></script>
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/guide.css?v=1">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+
+<header class="bar" role="banner">
+  <a class="home" href="/" aria-label="tare home"><span class="logo" aria-hidden="true">t<i></i></span>tare</a>
+  <nav aria-label="Sections">
+    <a href="/">home</a>
+    <a href="https://github.com/priberry-data/tarelab">github</a>
+  </nav>
+</header>
+
+<main id="main">
+<article class="guide">
+  <p class="eyebrow">guide · claude code cost</p>
+  <h1>How to cut Claude Code token costs: where the tokens actually go</h1>
+  <p class="lede">When people try to make Claude Code cheaper, they usually look at the model's answers. In our own logs, the answers were the smallest part of the bill. Most of the money went on re-reading context that was already there, and on rebuilding the prompt cache after it went cold.</p>
+  <p class="meta">Updated 19 November 2026 · Prices are Anthropic's API list prices. On a Pro or Max plan you pay a flat fee, but the same waste uses up your plan's limits faster.</p>
+
+  <h2>A real month, by cause</h2>
+  <p>This is one month of Priberry's own Claude Code use, read from the logs Claude Code keeps on disk and priced at API rates:</p>
+<pre>  $6,720 API-equivalent spend · 254 sessions · 79,905 API calls
+
+  Reading cached context     $3,809
+  Writing to the cache       $2,072
+  Output (thinking incl.)      $838
+
+  ~82k tokens load before you type a word.
+  Coffee-break tax: $722 re-caching after 636 pauses.
+  Sub-agents spent $2,734 (41%).</pre>
+  <p>Your numbers will differ. To see your own, run <code>npx tarelab</code>. It reads the same local logs, uploads nothing and never calls a model.</p>
+
+  <h2>How Claude Code is billed, in one minute</h2>
+  <p>Every message re-sends the whole conversation: your instructions, every file it read and every command output so far. The prompt cache makes that affordable. Reading from the cache costs a tenth of the normal input price. Writing to it costs more than normal input: 1.25× for the standard 5-minute cache, 2× for the 1-hour cache. As long as the cache stays warm, each message pays mostly cheap reads. When it goes cold, the next message writes the whole context again at the higher price.</p>
+
+  <h2>Seven ways to cut the cost</h2>
+
+  <h3>1. Mind the coffee-break tax</h3>
+  <p>The standard cache lives for about five minutes after the last use. Step away for longer and the next message re-writes everything. In the month above that happened 636 times and cost $722. You don't have to stop taking breaks. Finish a step before you leave, start a new session for a new task instead of reviving a huge old one, and know when the cache is about to expire. <code>tare fix</code> adds a status line that counts down to the cache going cold and shows what the next message will cost warm versus cold.</p>
+
+  <h3>2. Shrink what loads before you type</h3>
+  <p>CLAUDE.md files, MCP tool definitions and skills load into every session before your first word. In our case that was about 82,000 tokens, and every later message re-reads it. Remove MCP servers you don't use in this project, keep CLAUDE.md to what the agent really needs, and move rarely used instructions into files it reads only when needed.</p>
+
+  <h3>3. Keep big command output out of the context</h3>
+  <p>A test run or build log that prints thousands of lines stays in the conversation and is re-read on every later call until the conversation is compacted. Tare calls this the carry cost. Ask for targeted commands (one failing test, the last 50 lines), or let <code>tare fix</code> install its output trim: output over about 2,500 tokens is cut to the start, the lines that look like failures and the end, and the full output is saved to a file the agent can open.</p>
+
+  <h3>4. Don't switch models mid-session</h3>
+  <p>The cache belongs to one model. Switching models in the middle of a long session means the next message builds a new cache from scratch. Pick the model at the start of a task, or switch at a natural break.</p>
+
+  <h3>5. Use sub-agents on purpose</h3>
+  <p>Each sub-agent builds its own context. They're worth it for real parallel work or for keeping a noisy search out of the main conversation. In the month above they spent 41% of the total, so it's worth checking they earned it.</p>
+
+  <h3>6. Don't rewrite the history to save tokens</h3>
+  <p>Tools that edit or summarise earlier messages to make the context smaller break the cache, and the rebuild often costs more than the tokens saved. Cut waste where it enters the context, as in 3, and leave what's already there alone.</p>
+
+  <h3>7. Measure before and after</h3>
+  <p>A change that feels cheaper isn't always cheaper. Some cut tokens but make the agent fail more often. <code>tare receipt</code> compares cost per commit before and after your changes, with a 90% range, and checks that as many sessions still reach a commit. With fewer than 8 finished sessions on either side it says "not enough data" instead of guessing.</p>
+
+  <section class="cta">
+    <h2>See where your tokens go</h2>
+    <p>One command reads the logs Claude Code, Codex CLI, Gemini CLI, Cline, Roo Code and Kilo Code already keep on your machine. Free, open source, nothing uploaded.</p>
+<pre>npx tarelab</pre>
+    <p><a href="https://github.com/priberry-data/tarelab">Source on GitHub</a> · <a href="/">How Tare works</a></p>
+  </section>
+</article>
+</main>
+
+<footer class="bar foot">
+  <span>© 2026 <a href="https://priberry.com">priberry</a> · tare is built by priberry · also: <a href="https://crumple.priberry.com">crumple</a></span>
+  <span><a href="https://priberry.com/privacy/">privacy</a></span>
+  <span class="dim legal">Claude Code and Codex are trademarks of their owners. Tare is independent and not affiliated with Anthropic or OpenAI.</span>
+</footer>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "a2f8781a50ee4af69cfde4cfc75da6f3"}'></script>
+</body>
+</html>

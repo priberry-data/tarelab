@@ -1,0 +1,16 @@
+/* Long-form guide pages. Loaded after site.css. */
+.guide{max-width:720px;margin:0 auto;padding:40px 16px 64px}
+.guide .eyebrow{color:var(--dim);margin:0 0 8px}
+.guide h1{font-size:28px;line-height:1.3;color:var(--hi);margin:0 0 16px;font-weight:600}
+.guide h2{font-size:19px;line-height:1.4;color:var(--hi);margin:40px 0 10px;font-weight:600}
+.guide h3{font-size:16px;margin:28px 0 6px;font-weight:600}
+.guide p,.guide li{font-family:"Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.7}
+.guide .lede{font-size:17px}
+.guide .meta{color:var(--dim);font-size:14px}
+.guide pre{border:1px solid var(--line);padding:14px 16px;margin:16px 0;overflow-x:auto;font-size:14px;line-height:1.55;white-space:pre}
+.guide table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px}
+.guide th,.guide td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.guide th{color:var(--hi);font-weight:600}
+.guide .cta{border:1px solid var(--line-hi);padding:20px;margin:40px 0 0}
+.guide .cta h2{margin-top:0}
+@media (max-width:560px){.guide h1{font-size:23px}}
