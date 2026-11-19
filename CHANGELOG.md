@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- "What filled the context" no longer lists the same MCP server twice: every tool of a server is now added up into one row, so the top five shows five different sources.
+
 ## 0.2.1
 
 - A welcome screen: in a wide terminal, Tare's report now opens with a pixel-art balance, a stack of tokens on the heavy pan, and the three commands that matter. Pipes, CI, `NO_COLOR`, `--json` and narrow windows get plain text as before.

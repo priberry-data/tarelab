@@ -242,3 +242,17 @@ test("setup adds a pinned MCP entry to each app found, leaves the rest alone, an
   assert.equal(fs.readFileSync(path.join(home, ".codex", "config.toml"), "utf8").trim(), toml.trim());
   if (prevCodex) process.env.CODEX_HOME = prevCodex;
 });
+
+test("wrapped: tools from one MCP server are added up into one row", async () => {
+  const { render } = await import("../src/wrapped.mjs");
+  const R = {
+    days: 7, sessions: 1, calls: 3, usd: 10, fixes: [], lines: [], byModel: {}, byAgent: {},
+    cost: { read: 5, write: 3, output: 1, input: 1 },
+    startup: { usd: 1 },
+    tools: { "mcp__chrome__click": { usd: 2 }, "mcp__chrome__navigate": { usd: 3 }, Bash: { usd: 1 } },
+  };
+  const out = render(R, { color: false });
+  const rows = out.split("\n").filter((l) => l.includes("MCP: chrome"));
+  assert.equal(rows.length, 1);
+  assert.match(rows[0], /\$5/);
+});

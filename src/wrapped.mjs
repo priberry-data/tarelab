@@ -56,12 +56,14 @@ export function render(R, { color = true } = {}) {
   w();
 
   w(`  ${bold("What filled the context")}  ${dim("(cost of carrying it, call after call)")}`);
+  // Several tools share one label (every tool of an MCP server is "MCP: <server>"), so add them up first.
+  const byLabel = {};
+  for (const [t, b] of Object.entries(R.tools)) byLabel[toolName(t)] = (byLabel[toolName(t)] || 0) + b.usd;
   const fills = [
     ["Startup context", R.startup.usd],
-    ...Object.entries(R.tools)
-      .sort((a, b) => b[1].usd - a[1].usd)
-      .slice(0, 5)
-      .map(([t, b]) => [toolName(t), b.usd]),
+    ...Object.entries(byLabel)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5),
   ].sort((a, b) => b[1] - a[1]);
   const fmax = Math.max(...fills.map((f) => f[1]));
   for (const [l, v] of fills) if (v > 0.005) row(l, v, fmax);
