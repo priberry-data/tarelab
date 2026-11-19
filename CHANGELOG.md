@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.2
 
 - "What filled the context" no longer lists the same MCP server twice: every tool of a server is now added up into one row, so the top five shows five different sources.
 
