@@ -4,7 +4,7 @@
 > prices every API call at list prices, shows where the tokens and money went, installs cache-safe
 > fixes, and measures cost per commit before and after. Local, free, never calls a model.
 
-Status: v0.2.2, open source (Apache-2.0). Install: npx tarelab. Source: https://github.com/priberry-data/tarelab. Contact: hello@priberry.com. Built by Priberry (also makes Crumple, https://crumple.priberry.com).
+Status: v0.2.3, open source (Apache-2.0). Install: npx tarelab. Source: https://github.com/priberry-data/tarelab. Contact: hello@priberry.com. Built by Priberry (also makes Crumple, https://crumple.priberry.com).
 
 ## Commands
 - `tare` (or `tare wrapped`): spend and attribution for the last 30 days. `--days N`, `--all`, `--json`.
