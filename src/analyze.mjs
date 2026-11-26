@@ -219,7 +219,7 @@ function fixes(R) {
       title: "Trim long command output",
       saves: R.trim.usd,
       detail: `${R.trim.n} command outputs were longer than ~2.5k tokens and stayed in context. Tare keeps the errors, the start and the end, and saves the full output to a file the agent can open.`,
-      auto: "tare fix applies it",
+      auto: "npx tarelab fix applies it",
     });
   if (R.repeats.usd > 5) {
     const [l] = top(Object.fromEntries(Object.entries(R.repeats.labels).map(([k, v]) => [k, { usd: v }])), 1)[0] || [];
@@ -237,7 +237,7 @@ function fixes(R) {
       title: "Stop paying the coffee-break tax",
       saves: R.rebuilds.idle.usd * 0.5,
       detail: `${R.rebuilds.idle.n} times a pause of more than 5 minutes let the prompt cache expire, and the whole conversation was written again: ${$(R.rebuilds.idle.usd)} in all. Tare's status line counts down to the cache going cold and shows what the next message will cost; /compact or /clear before a break. Counted as half saved, since some context is always needed.`,
-      auto: "tare fix adds the countdown",
+      auto: "npx tarelab fix adds the countdown",
     });
   if (R.rebuilds.broken.usd + R.rebuilds.model.usd > 0.5)
     out.push({

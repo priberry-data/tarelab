@@ -78,7 +78,7 @@ export function install({ scope = "user", dryRun = false, cwd } = {}) {
   const state = readJson(STATE, {});
   state.installs = [...(state.installs || []), { at: Date.now(), scope, file, backup, fixes: ["trim", "statusline"] }];
   fs.writeFileSync(STATE, JSON.stringify(state, null, 2));
-  return [...lines, `  Backup: ${backup}`, "  New sessions pick this up; restart open ones. Undo any time: tare fix --undo", "  In a week or two, run: tare receipt"].join("\n");
+  return [...lines, `  Backup: ${backup}`, "  New sessions pick this up; restart open ones. Undo any time: npx tarelab fix --undo", "  In a week or two, run: npx tarelab receipt"].join("\n");
 }
 
 export function uninstall({ scope = "user", dryRun = false, cwd } = {}) {
@@ -130,8 +130,8 @@ export function status() {
     }
   } catch {}
   const first = state.installs?.[0]?.at;
-  out.push("", first ? `  Installed since ${new Date(first).toISOString().slice(0, 10)}.` : "  Not installed yet: tare fix");
+  out.push("", first ? `  Installed since ${new Date(first).toISOString().slice(0, 10)}.` : "  Not installed yet: npx tarelab fix");
   if (n) out.push(`  Output trim has cut ${n} long outputs, ~${Math.round(tokens / 1000)}k tokens before they entered context.`);
-  out.push("  For the measured saving per task, run: tare receipt");
+  out.push("  For the measured saving per task, run: npx tarelab receipt");
   return out.join("\n");
 }

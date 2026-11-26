@@ -43,6 +43,8 @@ const { values: opt, positionals } = parsed;
 
 const HELP = `tare ${VERSION}: same work, fewer tokens, with the receipt.
 
+  Run any command with npx (npx tarelab fix), or npm i -g tarelab to type tare.
+
   tare [wrapped]        Where your coding agents' tokens went (last 30 days). Local, zero tokens.
        --days N | --all   Choose the window.       --json   Machine-readable output.
   tare card             Write the shareable Wrapped card (HTML + SVG) and open it.
@@ -91,7 +93,7 @@ async function main() {
         "  No agent sessions found in this window. Tare reads Claude Code, Codex CLI, Gemini CLI, and Cline,\n  Roo Code and Kilo Code in VS Code, Cursor, Windsurf and other VS Code-based editors.\n  Try --all, or --logs <dir> for Claude Code logs somewhere else.",
       );
     console.log(render(R, { color: Boolean(process.stdout.isTTY && !process.env.NO_COLOR) }));
-    console.log(`\n  Next: ${"tare card"} for a shareable card · ${"tare fix"} to apply the fixes\n`);
+    console.log(`\n  Next: ${"npx tarelab card"} for a shareable card · ${"npx tarelab fix"} to apply the fixes\n`);
     return;
   }
   if (cmd === "card") {

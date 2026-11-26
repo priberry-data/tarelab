@@ -65,7 +65,7 @@ const pct = (x) => `${x > 0 ? "+" : ""}${Math.round(x * 100)}%`;
 export function renderReceipt(r) {
   const L = ["", "  TARE RECEIPT", "  ────────────────────────────────────────"];
   if (r.verdict === "not-installed") {
-    L.push("  No fixes installed yet, so there's nothing to compare.", "  Run `tare fix`, work as usual for a week or two, then come back.");
+    L.push("  No fixes installed yet, so there's nothing to compare.", "  Run `npx tarelab fix`, work as usual for a week or two, then come back.");
     return L.join("\n");
   }
   L.push(`  Fixes installed     ${new Date(r.installedAt).toISOString().slice(0, 10)}`);
@@ -78,7 +78,7 @@ export function renderReceipt(r) {
     L.push(`  Cost per commit     ${pct(r.change.point)}  (90% range ${pct(r.change.lo)} to ${pct(r.change.hi)})`);
     L.push(`  Sessions finishing  ${Math.round(r.before.finishRate * 100)}% → ${Math.round(r.after.finishRate * 100)}%${r.workHeld ? "  · work held up" : "  · FEWER sessions finish: check the fixes"}`);
     L.push(
-      r.verdict === "saving" ? "  Verdict: a real saving." : r.verdict === "costlier" ? "  Verdict: costlier since the fixes. Try `tare fix --undo`." : "  Verdict: too close to call yet.",
+      r.verdict === "saving" ? "  Verdict: a real saving." : r.verdict === "costlier" ? "  Verdict: costlier since the fixes. Try `npx tarelab fix --undo`." : "  Verdict: too close to call yet.",
     );
   }
   L.push("  ────────────────────────────────────────", "  Measured on your own logs, on this machine.");
