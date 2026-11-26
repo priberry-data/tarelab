@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3
+
+- Every hint now prints the command that works after `npx` (`npx tarelab fix`, not `tare fix`), so it runs without a global install. Help says how to get the short `tare` command.
+
 ## 0.2.2
 
 - "What filled the context" no longer lists the same MCP server twice: every tool of a server is now added up into one row, so the top five shows five different sources.
