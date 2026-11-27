@@ -101,6 +101,6 @@ and the browser app builders (Lovable, Bolt, v0, Replit) keep usage on their ser
 them yet; opencode is next. Cline-family costs are the ones the extension itself recorded. The
 `fix` and `receipt` commands work on Claude Code, where the hooks exist. Token counts for tool output are
 estimated from text length (the API reports totals per call, not per block). Prices are as of
-2026-10-06 for Anthropic and 2026-11-08 for OpenAI and Google, and live in `src/prices.mjs`.
+2026-11-27 for Anthropic and 2026-11-08 for OpenAI and Google, and live in `src/prices.mjs`.
 
 Apache-2.0 · Built by [Priberry](https://priberry.com), who also make [Crumple](https://crumple.priberry.com) (crash-test your coding agent) and [Greenlit](https://greenlit.priberry.com) (is your AI-built app safe to launch?).
