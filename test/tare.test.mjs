@@ -256,3 +256,90 @@ test("wrapped: tools from one MCP server are added up into one row", async () =>
   assert.equal(rows.length, 1);
   assert.match(rows[0], /\$5/);
 });
+
+test("newer models have their own prices, not an older row's", () => {
+  assert.deepEqual(priceFor("claude-fable-5-2"), { input: 8, output: 40, read: 0.2 });
+  assert.deepEqual(priceFor("claude-mythos-5-2"), { input: 8, output: 40, read: 0.2 });
+  assert.deepEqual(priceFor("claude-sonnet-5-5"), { input: 2, output: 10, read: 0.1 });
+  assert.equal(priceFor("claude-sonnet-5").read, 0.2);
+  const u = readUsage({ input_tokens: 1_000_000, output_tokens: 0, speed: "fast" });
+  assert.equal(total(costOf("claude-fable-5-2", u)), 16);
+  assert.equal(total(costOf("claude-opus-4-8", u)), 10);
+});
+
+// Writes one log per entry under a fresh projects folder and returns that folder.
+function projects(files) {
+  const root = fs.mkdtempSync(path.join(tmp, "p-"));
+  for (const [rel, rows] of Object.entries(files)) {
+    const f = path.join(root, "-work-demo", rel);
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    fs.writeFileSync(f, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  }
+  return root;
+}
+const say = (min, text) => ({ type: "user", timestamp: at(min), message: { content: text } });
+const history = () => [
+  say(0, "fix the tests"),
+  assistant("h1", 0, usage(0, 30_000), [bash("a1", "git commit -m one")]),
+  result("a1", 1, "y".repeat(37_000)),
+  assistant("h2", 1, usage(30_000, 10_000)),
+];
+
+test("a resumed session's copied history is counted once", async () => {
+  const more = [say(5, "and the docs"), assistant("n1", 5, usage(40_000, 1_000), [bash("b1", "git commit -m two")])];
+  const alone = await analyze({ days: 0, root: projects({ "old.jsonl": history() }) });
+  const both = await analyze({ days: 0, root: projects({ "old.jsonl": history(), "new.jsonl": [...history(), ...more] }) });
+  assert.equal(both.calls, 3);
+  assert.equal(both.prompts, 2);
+  assert.equal(both.commits, 2);
+  assert.equal(both.tools.Bash.n, alone.tools.Bash.n);
+  assert.equal(both.trim.n, 1);
+  // the same money as one unbroken log of the same work
+  const joined = await analyze({ days: 0, root: projects({ "one.jsonl": [...history(), ...more] }) });
+  assert.ok(Math.abs(both.usd - joined.usd) < 1e-9, `${both.usd} vs ${joined.usd}`);
+  assert.ok(Math.abs(both.tools.Bash.usd - joined.tools.Bash.usd) < 1e-9, `${both.tools.Bash.usd} vs ${joined.tools.Bash.usd}`);
+  // the receipt sees two sessions with one commit each, and the new one starts at its own work
+  assert.deepEqual(both.sessionList.map((x) => x.commits).sort(), [1, 1]);
+  assert.equal(both.sessionList.find((x) => x.session === "new").start, Date.parse(at(5)));
+});
+
+test("a file that is only a copy adds nothing", async () => {
+  const R = await analyze({ days: 0, root: projects({ "a.jsonl": history(), "b.jsonl": history() }) });
+  assert.equal(R.calls, 2);
+  assert.equal(R.sessions, 1);
+  assert.equal(R.commits, 1);
+  assert.equal(R.prompts, 1);
+});
+
+test("workflow sub-agent logs are found and charged to their session; saved tool output is not read", async () => {
+  const root = projects({
+    "sess.jsonl": history(),
+    "sess/subagents/agent-1.jsonl": [assistant("s1", 2, usage(0, 25_000))],
+    "sess/subagents/workflows/wf_1/agent-2.jsonl": [assistant("s2", 3, usage(0, 25_000))],
+    "sess/subagents/workflows/wf_1/journal.jsonl": [{ type: "started" }],
+    "sess/tool-results/saved.jsonl": [assistant("zz", 3, usage(0, 25_000))],
+    // a forked sub-agent starts with the parent's calls: the main log keeps them
+    "sess/subagents/agent-fork.jsonl": [...history(), assistant("s3", 4, usage(40_000, 500))],
+  });
+  const R = await analyze({ days: 0, root });
+  assert.equal(R.calls, 5);
+  assert.equal(R.sessions, 1);
+  assert.equal(R.sessionList.length, 1);
+  assert.ok(Math.abs(R.sessionList[0].usd - R.usd) < 1e-9);
+});
+
+test("a log last written early on the window's first day is still counted", async () => {
+  const day = new Date(Date.now() - 30 * 86400_000).toISOString().slice(0, 10);
+  const row = { ...assistant("edge", 0, usage(0, 1_000)), timestamp: `${day}T00:00:01.000Z` };
+  const root = projects({ "e.jsonl": [row] });
+  fs.utimesSync(path.join(root, "-work-demo", "e.jsonl"), new Date(row.timestamp), new Date(row.timestamp));
+  assert.equal((await analyze({ days: 30, root })).calls, 1);
+});
+
+test("a reply logged over several lines is priced from its fullest line, once", async () => {
+  const root = projects({ "s.jsonl": [assistant("x", 0, usage(0, 0, 1)), assistant("x", 0, usage(0, 0, 5000)), assistant("x", 0, usage(0, 0, 5000))] });
+  const R = await analyze({ days: 0, root });
+  const want = (2 * 4 + 5000 * 20) / 1e6;
+  assert.equal(R.calls, 1);
+  for (const got of [R.usd, R.byModel["claude-opus-5-5"], R.cost.input + R.cost.output]) assert.ok(Math.abs(got - want) < 1e-12, `${got} vs ${want}`);
+});

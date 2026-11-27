@@ -1,14 +1,15 @@
-// API list prices in US dollars per million tokens. Anthropic as published on 6 Oct 2026; OpenAI and
+// API list prices in US dollars per million tokens. Anthropic as published on 27 Nov 2026; OpenAI and
 // Google as published on 8 Nov 2026 (standard tier, short prompts, with Google's long-prompt tier).
 // Cache writes cost 1.25x input for the 5-minute cache and 2x for the 1-hour cache; cache reads
 // have their own per-model rate. Claude Code on a subscription is not billed this way, so Tare
 // calls these numbers "API-equivalent" cost: what the same work would cost on the API.
-export const PRICES_AS_OF = "2026-10-06";
+export const PRICES_AS_OF = "2026-11-27";
 export const OTHER_PRICES_AS_OF = "2026-11-08";
 
 const P = (input, output, read, over) => ({ input, output, read: read ?? input, ...(over && { over }) });
 const LONG = (above, input, output, read) => ({ above, input, output, read });
 const TABLE = [
+  [/^claude-(fable|mythos)-5-2/, P(8, 40, 0.2)],
   [/^claude-(fable|mythos)-5-1/, P(10, 50, 0.25)],
   [/^claude-(fable|mythos)-5/, P(10, 50, 1)],
   [/^claude-opus-5-5/, P(4, 20, 0.2)],
@@ -16,6 +17,7 @@ const TABLE = [
   [/^claude-opus-4-[5-9]/, P(5, 25, 0.5)],
   [/^claude-opus-4/, P(15, 75, 1.5)],
   [/^claude-3-opus/, P(15, 75, 1.5)],
+  [/^claude-sonnet-5-5/, P(2, 10, 0.1)],
   [/^claude-sonnet-5/, P(2, 10, 0.2)],
   [/^claude-(sonnet-4|3-[57]-sonnet)/, P(3, 15, 0.3)],
   [/^claude-haiku-5-5/, P(0.1, 0.5, 0.01)],
@@ -94,7 +96,8 @@ export function readUsage(u) {
 export function costOf(model, u) {
   const p = priceFor(model);
   if (!p || !u) return null;
-  const k = u.fast && /opus-5/.test(model) ? 2 : 1;
+  // Fast mode costs twice the standard rate on every model that offers it
+  const k = u.fast && /opus-(5|4-8)|(fable|mythos)-5-2/.test(model) ? 2 : 1;
   // Claude Haiku 5.5 bills prompts over 100K tokens at a higher rate
   const big = /haiku-5-5/.test(model) && u.input + u.read + u.write5m + u.write1h > 100_000 ? 5 : 1;
   const r = (x) => (x * k * big) / 1e6;

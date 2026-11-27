@@ -47,6 +47,8 @@ npx tarelab
 
 ## How the numbers work
 
+- **Counted once.** A resumed or forked session copies earlier calls into a new log file. Tare counts each
+  call in one file, and charges the new session only for what it did after the copy.
 - **API-equivalent.** Every call is priced at Anthropic's API list prices: fresh input, cache writes
   (1.25× input for the 5-minute cache, 2× for the 1-hour cache), cache reads and output. On a
   subscription you pay a flat fee; this is what the same work would cost on the API.

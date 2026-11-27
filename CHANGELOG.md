@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.4
+
+Fixes to the counting. **Your totals will change after upgrading.**
+
+- A resumed or forked session copies earlier API calls into a new log file. Earlier versions counted those calls again, with their tool output, prompts and commits. Each is now counted once; the new session is still charged for reading that history again.
+- Sub-agent logs more than a few folders down, such as those written by workflows, are now read.
+- Claude Fable 5.2, Mythos 5.2 and Sonnet 5.5 have their own prices. Before, they took an older model's rates (Fable 5.2 was priced well above list). Fast mode is now doubled on every model that offers it. Anthropic prices as of 27 Nov 2026.
+- A reply logged over several lines is priced from its fullest line. Before, a first line with partial output could price it low.
+- `--days N` no longer skips a log last written early on the window's first day.
+- The first run after upgrading reads your logs afresh.
+
 ## 0.2.3
 
 - Every hint now prints the command that works after `npx` (`npx tarelab fix`, not `tare fix`), so it runs without a global install. Help says how to get the short `tare` command.

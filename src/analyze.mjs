@@ -9,7 +9,7 @@ import { findAgentLogs, summarizeAgent } from "./agents.mjs";
 import { modelName } from "./prices.mjs";
 
 export const TARE_HOME = process.env.TARE_HOME || path.join(os.homedir(), ".tare");
-const CACHE_VERSION = "4";
+const CACHE_VERSION = "5";
 
 export function findLogs(root = path.join(os.homedir(), ".claude", "projects")) {
   const out = [];
@@ -22,7 +22,8 @@ export function findLogs(root = path.join(os.homedir(), ".claude", "projects")) 
     }
     for (const e of ents) {
       const p = path.join(dir, e.name);
-      if (e.isDirectory() && depth < 3 && e.name !== "memory") walk(p, depth + 1);
+      // Any depth: workflow sub-agents log several folders down. Saved tool output is not a log.
+      if (e.isDirectory() && depth < 12 && e.name !== "memory" && e.name !== "tool-results") walk(p, depth + 1);
       else if (e.isFile() && e.name.endsWith(".jsonl")) out.push(p);
     }
   };
@@ -30,8 +31,8 @@ export function findLogs(root = path.join(os.homedir(), ".claude", "projects")) 
   return out;
 }
 
-async function cachedSummary(file, st, read = () => summarizeLog(file)) {
-  const key = crypto.createHash("sha1").update(`${CACHE_VERSION}|${file}|${st.size}|${st.mtimeMs}`).digest("hex");
+async function cachedSummary(file, st, read = () => summarizeLog(file), variant = "") {
+  const key = crypto.createHash("sha1").update(`${CACHE_VERSION}|${file}|${st.size}|${st.mtimeMs}${variant}`).digest("hex");
   const cf = path.join(TARE_HOME, "cache", key + ".json");
   try {
     return JSON.parse(fs.readFileSync(cf, "utf8"));
@@ -42,6 +43,36 @@ async function cachedSummary(file, st, read = () => summarizeLog(file)) {
     fs.writeFileSync(cf, JSON.stringify(s));
   } catch {}
   return s;
+}
+
+// Resumed and forked sessions copy earlier API calls into new log files. Each call is counted in one
+// file: a main log before a sub-agent's, then the one that started and stopped first. A file with
+// copies is read again with those calls marked.
+async function countOnce(jobs) {
+  const order = jobs.sort(
+    (a, b) => a.s.sub - b.s.sub || (a.s.start ?? 0) - (b.s.start ?? 0) || (a.s.end ?? 0) - (b.s.end ?? 0) || (a.f < b.f ? -1 : a.f > b.f ? 1 : 0),
+  );
+  const counted = new Set();
+  const again = [];
+  for (const job of order) {
+    const copied = (job.s.ids || []).filter((id) => counted.has(id));
+    for (const id of job.s.ids || []) counted.add(id);
+    if (copied.length) again.push({ job, skip: new Set(copied) });
+  }
+  await Promise.all(
+    Array.from({ length: 6 }, async () => {
+      for (let x; (x = again.shift()); ) {
+        const { f, st } = x.job;
+        const variant = "|" + crypto.createHash("sha1").update([...x.skip].sort().join()).digest("hex");
+        try {
+          x.job.s = await cachedSummary(f, st, () => summarizeLog(f, { skip: x.skip }), variant);
+        } catch {
+          x.job.s = null; // unreadable on the second pass: leave it out rather than count it twice
+        }
+      }
+    }),
+  );
+  return order.map((j) => j.s).filter(Boolean);
 }
 
 const bucket = () => ({ n: 0, tokens: 0, usd: 0 });
@@ -73,22 +104,28 @@ export async function analyze({ days = 30, root, home, onStart, onProgress } = {
   };
   const files = [...findLogs(root).map((f) => ({ f })), ...others]
     .map((x) => ({ ...x, st: stat(x.f) }))
-    .filter(({ st }) => st && st.mtimeMs >= since);
+    // The window is whole UTC days, so a file last written early on its first day is still inside it.
+    .filter(({ st }) => st && st.mtimeMs >= (sinceDay ? Date.parse(sinceDay) : 0));
 
   onStart?.(files.length);
-  const summaries = [];
+  const summaries = []; // other agents' logs
+  const claude = [];
   let done = 0;
   const queue = [...files];
   await Promise.all(
     Array.from({ length: 6 }, async () => {
       for (let job; (job = queue.shift()); ) {
         try {
-          summaries.push(await cachedSummary(job.f, job.st, job.kind ? () => summarizeAgent(job) : undefined));
+          const s = await cachedSummary(job.f, job.st, job.kind ? () => summarizeAgent(job) : undefined);
+          if (job.kind) summaries.push(s);
+          else claude.push({ f: job.f, st: job.st, s });
         } catch {}
         onProgress?.(++done, files.length);
       }
     }),
   );
+
+  summaries.push(...(await countOnce(claude)));
 
   const R = {
     days,

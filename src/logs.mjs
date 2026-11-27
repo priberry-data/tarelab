@@ -48,18 +48,28 @@ export function commandLabel(cmd) {
 }
 
 const emptyBucket = () => ({ n: 0, tokens: 0, usd: 0 });
-const add = (map, key, tokens, usd) => {
+const add = (map, key, tokens, usd, n = 1) => {
   const b = (map[key] ||= emptyBucket());
-  b.n++;
+  b.n += n;
   b.tokens += tokens;
   b.usd += usd;
 };
 
-export async function summarizeLog(file) {
-  const sub = file.includes(`${path.sep}subagents${path.sep}`);
+// Sub-agent logs sit under <session>/subagents/, sometimes deeper (…/subagents/workflows/<run>/).
+export function logSession(file) {
+  const parts = file.split(path.sep);
+  const i = parts.lastIndexOf("subagents");
+  return i > 0 ? { sub: true, session: parts[i - 1] } : { sub: false, session: path.basename(file, ".jsonl") };
+}
+
+// A resumed or forked session's log starts with a copy of the earlier one. `skip` holds the ids of
+// the API calls that another log already counts: they still shape the context here, but their cost,
+// tool output, prompts and commits are not counted again.
+export async function summarizeLog(file, { skip } = {}) {
+  const { sub, session } = logSession(file);
   const s = {
     file,
-    session: sub ? path.basename(path.dirname(path.dirname(file))) : path.basename(file, ".jsonl"),
+    session,
     sub,
     project: null,
     start: null,
@@ -85,13 +95,23 @@ export async function summarizeLog(file) {
     prompts: 0,
     commits: 0,
     compactions: 0,
+    ids: [], // every API call id in this file, so a copy in another file is counted only once
   };
+
+  // Prompts and compactions belong to whoever owns the reply that follows them.
+  const waiting = { prompts: 0, compactions: 0 };
+  const settle = (mine) => {
+    if (mine) for (const k in waiting) s[k] += waiting[k];
+    waiting.prompts = waiting.compactions = 0;
+  };
+  let copies = 0;
+  let ownStart = null;
 
   const calls = []; // { read, write } $/token rates per call, for carry cost
   const items = []; // { at, tokens, kind, key, label, tool }
   const boundaries = []; // call index where a compaction happened
   const pending = new Map(); // tool_use_id -> { name, input }
-  const seenMsg = new Set();
+  const seenMsg = new Map(); // call id -> what was counted for it, or null for a copy
   let seen = new Set(); // tool + input + output hash, reset on compaction
   const seenParts = new Set();
   let minContext = Infinity;
@@ -118,7 +138,7 @@ export async function summarizeLog(file) {
       boundaries.push(calls.length);
       seen = new Set();
       compactedSinceLast = true;
-      s.compactions++;
+      waiting.compactions++;
       continue;
     }
 
@@ -144,18 +164,52 @@ export async function summarizeLog(file) {
 
     if (d.type === "assistant") {
       const m = d.message || {};
+      const copy = !!(m.id && skip?.has(m.id));
+      if (m.id && m.model !== "<synthetic>") settle(!copy);
       for (const b of m.content || []) {
         if (b?.type !== "tool_use") continue;
         pending.set(b.id, { name: b.name, input: b.input || {} });
         if (b.name === "Skill" && b.input?.skill && !s.skillsUsed.includes(b.input.skill)) s.skillsUsed.push(b.input.skill);
-        if (b.name === "Bash" && /\bgit\s+commit\b/.test(b.input?.command || "")) s.commits++;
+        if (!copy && b.name === "Bash" && /\bgit\s+commit\b/.test(b.input?.command || "")) s.commits++;
       }
-      if (!m.id || seenMsg.has(m.id) || m.model === "<synthetic>") continue;
-      seenMsg.add(m.id);
+      if (!m.id || m.model === "<synthetic>") continue;
+      if (seenMsg.has(m.id)) {
+        // A streamed reply is logged on several lines, and an early one can carry only part of the output.
+        const had = seenMsg.get(m.id);
+        const more = had && readUsage(m.usage);
+        if (more && more.output > had.output) {
+          const next = costOf(had.model, { ...had.usage, output: more.output, thinking: Math.max(had.usage.thinking, more.thinking) });
+          if (next) {
+            const extra = total(next) - total(had.cost);
+            s.cost.output += next.output - had.cost.output;
+            s.cost.thinking += next.thinking - had.cost.thinking;
+            s.byModel[had.model] += extra;
+            if (had.day) {
+              s.byDay[had.day] += extra;
+              s.byHour[had.hour] += extra;
+            }
+            had.cost = next;
+          }
+          had.output = more.output;
+        }
+        continue;
+      }
+      seenMsg.set(m.id, null);
       const u = readUsage(m.usage);
       if (!u) continue;
+      s.ids.push(m.id);
       const c = costOf(m.model, u);
       const p = priceFor(m.model);
+      const context = u.input + u.read + u.write5m + u.write1h;
+      if (context > 0) minContext = Math.min(minContext, context);
+      if (copy) {
+        copies++;
+        calls.push({ read: 0, write: 0, copy: true });
+        prev = { t, model: m.model, used1h: u.write1h > 0 || prev?.used1h };
+        compactedSinceLast = false;
+        continue;
+      }
+      if (ownStart == null && t) ownStart = t;
       s.calls++;
       if (!c) {
         s.unpriced++;
@@ -165,17 +219,17 @@ export async function summarizeLog(file) {
       for (const k of Object.keys(s.cost)) s.cost[k] += c[k];
       const usd = total(c);
       s.byModel[m.model] = (s.byModel[m.model] || 0) + usd;
+      const day = t ? new Date(t).toISOString().slice(0, 10) : null;
+      const hour = t ? new Date(t).getHours() : null;
       if (t) {
-        const day = new Date(t).toISOString().slice(0, 10);
         s.byDay[day] = (s.byDay[day] || 0) + usd;
-        s.byHour[new Date(t).getHours()] += usd;
+        s.byHour[hour] += usd;
       }
+      seenMsg.set(m.id, { model: m.model, usage: u, output: u.output, cost: c, day, hour });
       const rate = { read: p.read / 1e6, write: (p.input * 1.25) / 1e6 };
       calls.push(rate);
 
       const written = u.write5m + u.write1h;
-      const context = u.input + u.read + written;
-      if (context > 0) minContext = Math.min(minContext, context);
       if (calls.length > 1 && written > BIG_REBUILD && written > u.read * 0.5) {
         // Most of the prompt was written to the cache again instead of read from it.
         const lost = written * (rate.write - rate.read);
@@ -192,7 +246,7 @@ export async function summarizeLog(file) {
     if (d.type === "user") {
       const content = d.message?.content;
       if (typeof content === "string") {
-        if (!d.isMeta && !content.startsWith("<")) s.prompts++;
+        if (!d.isMeta && !content.startsWith("<")) waiting.prompts++;
         continue;
       }
       if (!Array.isArray(content)) continue;
@@ -215,9 +269,12 @@ export async function summarizeLog(file) {
         seen.add(key);
         items.push(item);
       }
-      if (typed && !d.isMeta) s.prompts++;
+      if (typed && !d.isMeta) waiting.prompts++;
     }
   }
+  settle(true);
+  // A copied log's own work starts at its first new call, not at the copied history.
+  if (copies && ownStart != null) s.start = ownStart;
 
   // Carry cost: written once at the next call, then read on each later call up to the next compaction.
   const readSum = [0];
@@ -227,22 +284,27 @@ export async function summarizeLog(file) {
     const end = boundaries.find((b) => b > it.at) ?? calls.length;
     const usd = it.tokens * (calls[it.at].write + (readSum[end] - readSum[it.at + 1]));
     it.usd = usd;
-    add(s.tools, it.tool, it.tokens, usd);
-    if (it.tool === "Bash") add(s.bash, it.label, it.tokens, usd);
-    if (it.server) add(s.mcp, it.server, it.tokens, usd);
-    if (it.error) add(s, "errors", it.tokens, usd);
+    // Output that first arrived in copied history is counted where it was first read; only the
+    // cost of reading it again here is added.
+    const n = calls[it.at].copy ? 0 : 1;
+    if (!n && !usd) continue;
+    const tokens = n * it.tokens;
+    add(s.tools, it.tool, tokens, usd, n);
+    if (it.tool === "Bash") add(s.bash, it.label, tokens, usd, n);
+    if (it.server) add(s.mcp, it.server, tokens, usd, n);
+    if (it.error) add(s, "errors", tokens, usd, n);
     if (it.tool === "Bash" && it.tokens > TRIM_ABOVE) {
       // What trimming to a head, a tail and the failures would have saved.
-      s.trim.n++;
-      s.trim.tokens += it.tokens - TRIM_TO;
+      s.trim.n += n;
+      s.trim.tokens += n * (it.tokens - TRIM_TO);
       s.trim.usd += (usd * (it.tokens - TRIM_TO)) / it.tokens;
     }
     if (it.repeat) {
-      s.repeats.n++;
-      s.repeats.tokens += it.tokens;
+      s.repeats.n += n;
+      s.repeats.tokens += tokens;
       s.repeats.usd += usd;
       const l = it.tool === "Bash" || it.tool === "Read" ? it.label : it.tool;
-      s.repeats.labels[l] = (s.repeats.labels[l] || 0) + 1;
+      if (n) s.repeats.labels[l] = (s.repeats.labels[l] || 0) + 1;
     }
   }
   s.biggest = items
